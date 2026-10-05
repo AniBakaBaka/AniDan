@@ -8,10 +8,10 @@
       "sha256": "0d254ee96dd7fc50329e9824e647274ddd102246524dbe4f4ef6b6ec30de590a"
     },
     {
-      "bytes": 3025,
+      "bytes": 4074,
       "mode": "0o644",
       "path": ".github/workflows/docker.yml",
-      "sha256": "2b1d1bec3f08edcc7dbc91fdd3944d9511f4280782cec5d530d52499d2085a78"
+      "sha256": "57fd507f9877acb77ec99b29a485907ecb7f1bf2c91405a089017da729f8c389"
     },
     {
       "bytes": 2940,
@@ -4994,10 +4994,10 @@
       "sha256": "04593aec811db61e265a0e60f72acff5ae3d9ab77727623279b2cc53f1cde363"
     },
     {
-      "bytes": 7288,
+      "bytes": 6644,
       "mode": "0o644",
       "path": "README.md",
-      "sha256": "985b2fb2410271aac9e587d04c704c5c057852dafe90c602a4b7697d8933841b"
+      "sha256": "b800237723c22388d8b8d9105e9f2db8feb5879cd80e331bdf9933e055562532"
     },
     {
       "bytes": 1960,
@@ -8016,6 +8016,6 @@
   "license": "AGPL-3.0-only",
   "project": "AniDan",
   "scope": "Allowlisted application source, build scripts, assets, documentation and notices; no runtime configuration or captured live comment pools.",
-  "sourceSha256": "ac2b4801f04d429abe3a6051670b590e69c1b3f1531a329b95a0f68f1202503d",
+  "sourceSha256": "873d58e1211a99cc7d074aa762117180d71512dd5725288a54b8987ab2eb74cf",
   "version": "0.1.0-stage30"
 }

@@ -36,10 +36,35 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
-          if [ -z "$DOCKER_USERNAME" ] || [ -z "$DOCKER_PASSWORD" ]; then
-            echo '::error::Add DOCKER_USERNAME and DOCKER_PASSWORD repository secrets with write access to 10c3/anidan.'
-            exit 1
-          fi
+          python3 - <<'PY'
+          import os
+          import re
+          import sys
+
+          def fail(message):
+              print("::error::" + message)
+              sys.exit(1)
+
+          username = os.environ.get("DOCKER_USERNAME", "")
+          token = os.environ.get("DOCKER_PASSWORD", "")
+          if not username or not token:
+              fail("Set both DOCKER_USERNAME and DOCKER_PASSWORD in repository Actions Secrets.")
+          if not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", username):
+              fail("DOCKER_USERNAME must be your Docker Hub username (for example 10c3), without an email, URL, quotes or whitespace.")
+          if any(ch.isspace() or ord(ch) < 32 or ord(ch) == 127 for ch in token):
+              fail("DOCKER_PASSWORD contains whitespace or control characters. Paste only the Docker Hub Access Token, not a login command or Authorization header.")
+          if token.startswith(("\"", "'", "DOCKER_PASSWORD=", "password=")) or token.endswith(("\"", "'")):
+              fail("DOCKER_PASSWORD must contain the raw Docker Hub Access Token, without quotes or a variable assignment.")
+          print("Credential format checked; Docker Hub login will verify whether the credentials are valid.")
+          PY
+
+      - name: Log in to Docker Hub
+        if: env.PUBLISH == 'true'
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
@@ -62,13 +87,6 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha,format=long
-
-      - name: Log in to Docker Hub
-        if: env.PUBLISH == 'true'
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and publish
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
