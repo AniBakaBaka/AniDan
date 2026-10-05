@@ -25,7 +25,7 @@
 <small>容器中的 localhost 指向容器自身。数据库在宿主机上时使用 host.docker.internal，并允许容器网络连接；其他容器可使用同一网络中的服务名。</small></section></section>
 <section id="admin"><div class="row"><label>管理员账号<input name="adminUsername" value="admin" autocomplete="username"></label><label>管理员密码<input name="adminPassword" type="password" minlength="8" required autocomplete="new-password"></label></div></section>
 <label id="timezone">时区<input name="timezone" placeholder="默认 Asia/Shanghai"></label>
-<button id="submit">保存并启动</button><p id="message" role="status" aria-live="polite"></p></form></main>
+<button id="submit">保存并启动</button><p id="message" role="status" aria-live="polite"></p><a id="continue" href="/" hidden>进入登录页面</a></form></main>
 <script>
 const form=document.querySelector('#setup'), message=document.querySelector('#message'), button=document.querySelector('#submit');
 function update(){
@@ -50,6 +50,16 @@ form.addEventListener('submit',async e=>{
   const v=Object.fromEntries(new FormData(form));v.legacy=v.mode==='legacy';v.dataDir=v.legacy?v.legacyDataDir:'';v.port=Number(v.port)||0;
   if(v.legacy)v.timezone=v.legacyTimezone||'';
   delete v.mode;delete v.legacyDataDir;delete v.legacyTimezone;delete v.manualDatabase;
-  try{const r=await fetch('/api/setup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(v)});if(!r.ok)throw new Error(await r.text());message.textContent='安装完成，正在启动。即将进入登录页面…';setTimeout(()=>location.replace('/'),2500)}catch(err){message.textContent=err.message;button.disabled=false}
+  try{
+    const r=await fetch('/api/setup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(v)});
+    if(!r.ok)throw new Error(await r.text());
+    const result=await r.json();
+    if(result.warnings?.length){
+      message.textContent='安装完成。\n'+result.warnings.join('\n');
+      setTimeout(()=>{document.querySelector('#continue').hidden=false},2500);
+    }else{
+      message.textContent='安装完成，正在启动。即将进入登录页面…';setTimeout(()=>location.replace('/'),2500);
+    }
+  }catch(err){message.textContent=err.message;button.disabled=false}
 });
 </script></body></html>

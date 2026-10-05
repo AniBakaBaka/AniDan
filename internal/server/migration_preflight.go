@@ -34,10 +34,10 @@ func PreflightMigrationTarget(ctx context.Context, cfg config.Config) error {
 	if _, err := os.Lstat(cfg.DataDir); err == nil {
 		evidence, err = migrate.ReadStartupEvidence(ctx, cfg.DataDir, cfg.MigrationReview.Options())
 		if err != nil {
-			return fmt.Errorf("migration target preflight: %w", err)
+			return &migrationPreflightError{stage: "files", cause: err}
 		}
 	} else if !os.IsNotExist(err) {
-		return err
+		return &migrationPreflightError{stage: "files", cause: err}
 	}
 	if cfg.RequireMigrationEvidence && evidence == nil {
 		return errors.New("selected migration evidence is missing; refusing ordinary startup")
@@ -51,12 +51,12 @@ func PreflightMigrationTarget(ctx context.Context, cfg config.Config) error {
 		// create the data directory, or start runtime/background services.
 		db, err := store.OpenReadOnly(ctx, cfg.Driver, cfg.DSN)
 		if err != nil {
-			return errors.New("cannot inspect configured remote migration target")
+			return &migrationPreflightError{stage: "connect", cause: err}
 		}
 		defer db.Close()
 		tx, err := db.DB.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true})
 		if err != nil {
-			return errors.New("cannot begin remote migration target preflight")
+			return &migrationPreflightError{stage: "transaction", cause: err}
 		}
 		defer tx.Rollback()
 		if err = migrate.VerifyRemoteTargetIdentity(ctx, db, cfg.DSN, tx, evidence); err != nil {

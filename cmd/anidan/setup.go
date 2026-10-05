@@ -248,7 +248,8 @@ func runSetup(ctx context.Context, base config.Config) (config.Config, error) {
 		}
 		check, cancel := context.WithTimeout(r.Context(), 5*time.Minute)
 		defer cancel()
-		if err = server.PrepareInstallation(check, cfg); err != nil {
+		warnings, err := server.PrepareInstallation(check, cfg)
+		if err != nil {
 			http.Error(w, err.Error(), 400)
 			return
 		}
@@ -257,7 +258,10 @@ func runSetup(ctx context.Context, base config.Config) (config.Config, error) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		io.WriteString(w, `{"ok":true}`)
+		for _, warning := range warnings {
+			fmt.Fprintln(os.Stderr, "AniDan 接入提示："+warning)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"ok": true, "warnings": warnings})
 		done <- persisted
 	})
 	srv := &http.Server{Addr: base.Listen, Handler: mux, ReadHeaderTimeout: 10 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 32 << 10}
