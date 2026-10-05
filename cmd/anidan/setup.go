@@ -39,6 +39,8 @@ type installationInput struct {
 	TLS           string `json:"tls"`
 	Legacy        bool   `json:"legacy"`
 	LegacyConfig  string `json:"legacyConfig"`
+	LegacyCompose string `json:"legacyCompose"`
+	LegacyHost    string `json:"legacyHost"`
 	DataDir       string `json:"dataDir"`
 	JWTSecret     string `json:"jwtSecret"`
 	JWTAlgorithm  string `json:"jwtAlgorithm"`
@@ -49,15 +51,22 @@ type installationInput struct {
 
 func installationConfig(base config.Config, in installationInput) (config.Config, error) {
 	c := base
-	if in.Legacy && in.LegacyConfig != "" {
-		var err error
-		c, err = config.Load(in.LegacyConfig)
-		if err != nil {
-			return c, errors.New("无法读取原版配置，请检查挂载路径与配置格式")
+	loadedLegacy := false
+	if in.Legacy {
+		if in.DataDir == "" {
+			in.DataDir = "/app/config"
 		}
-		c.Listen = base.Listen
-		// External caches are optional; do not inherit an unrelated shared cache.
-		c.Cache = base.Cache
+		legacy, loaded, err := installationLegacy(in)
+		if err != nil {
+			return c, err
+		}
+		loadedLegacy = loaded
+		// Only import settings belonging to the original database and accounts.
+		// AniDan's listener, cache, file permissions and runtime limits stay local.
+		c.JWTSecret, c.JWTAlgorithm, c.Timezone = legacy.JWTSecret, legacy.JWTAlgorithm, legacy.Timezone
+		if loaded {
+			c.Driver, c.DSN = legacy.Driver, legacy.DSN
+		}
 	}
 	c.LegacyDatabase = in.Legacy
 	if in.DataDir != "" {
@@ -83,7 +92,7 @@ func installationConfig(base config.Config, in installationInput) (config.Config
 	}
 	c.AdminPassword = in.AdminPassword
 	// Leaving host blank with a legacy YAML selects its original SQL connection.
-	if !in.Legacy || in.LegacyConfig == "" || in.Host != "" {
+	if !in.Legacy || !loadedLegacy || in.Host != "" {
 		c.Driver = in.Driver
 		if c.Driver == "sqlite" {
 			c.DSN = filepath.Join(c.DataDir, "anidan.db")
@@ -133,6 +142,14 @@ func installationConfig(base config.Config, in installationInput) (config.Config
 	}
 	if c.Driver == "postgresql" || c.Driver == "pgx" {
 		c.Driver = "postgres"
+	}
+	if in.Legacy && in.LegacyHost != "" {
+		if in.Host != "" {
+			return c, errors.New("仅修改主机与完整数据库配置不能同时填写")
+		}
+		if err := installationLegacyHost(&c, in.LegacyHost); err != nil {
+			return c, err
+		}
 	}
 	if !in.Legacy && c.JWTSecret == "" {
 		c.JWTSecret = rand.Text() + rand.Text()

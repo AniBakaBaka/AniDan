@@ -21,6 +21,10 @@ services:
       # To reuse Misaka, uncomment and point to its complete config directory.
       # Stop the original application before connecting its database here.
       # - /absolute/path/to/misaka/config:/app/config
+      # If connection/JWT settings are in the original Compose, also mount it:
+      # - /absolute/path/to/misaka/docker-compose.yml:/app/config/docker-compose.yml:ro
+      # Setup reads both files automatically; no export or credential re-entry.
+      # Keep the original SQL server running and reachable from this container.
     extra_hosts:
       - "host.docker.internal:host-gateway"
     read_only: true

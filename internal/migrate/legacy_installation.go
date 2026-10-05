@@ -388,12 +388,24 @@ func originalComposeCode(app *yaml.Node) bool {
 
 func originalComposeConfigMount(volumes *yaml.Node) (string, error) {
 	invalid := errors.New("Compose must contain one documented relative config bind without overlapping mounts")
-	if volumes == nil || volumes.Kind != yaml.SequenceNode || len(volumes.Content) != 1 {
+	if volumes == nil || volumes.Kind != yaml.SequenceNode || len(volumes.Content) < 1 || len(volumes.Content) > 2 {
 		return "", invalid
 	}
-	volume, ok := installationLiteralString(volumes.Content[0])
-	if !ok {
-		return "", invalid
+	volume := ""
+	for _, item := range volumes.Content {
+		value, ok := installationLiteralString(item)
+		if !ok {
+			return "", invalid
+		}
+		// The upstream optional control socket contains no migration assets.
+		// Recognize its declaration without opening it or inheriting access.
+		if value == "/var/run/docker.sock:/var/run/docker.sock" || value == "/var/run/docker.sock:/var/run/docker.sock:ro" || value == "/var/run/docker.sock:/var/run/docker.sock:rw" {
+			continue
+		}
+		if volume != "" {
+			return "", invalid
+		}
+		volume = value
 	}
 	parts := strings.Split(volume, ":")
 	if len(parts) < 2 || len(parts) > 3 || parts[0] != "./config" || parts[1] != "/app/config" {

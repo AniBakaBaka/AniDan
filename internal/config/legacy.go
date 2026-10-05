@@ -2,6 +2,7 @@
 package config
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"net"
@@ -40,13 +41,38 @@ type Legacy struct {
 }
 
 func ReadLegacy(path string) (Legacy, error) {
-	var legacy Legacy
 	f, e := os.Open(path)
 	if e != nil {
-		return legacy, e
+		return Legacy{}, e
 	}
 	defer f.Close()
-	d := yaml.NewDecoder(io.LimitReader(f, 1<<20))
+	data, e := io.ReadAll(io.LimitReader(f, (1<<20)+1))
+	if e != nil {
+		return Legacy{}, e
+	}
+	return parseLegacy(data)
+}
+
+// TranslateLegacyForInstallation reads mounted settings without inheriting the
+// new process's environment. Validation follows explicit installation overrides.
+func TranslateLegacyForInstallation(data []byte) (Config, error) {
+	c := Defaults()
+	legacy, err := parseLegacy(data)
+	if err != nil {
+		return c, err
+	}
+	err = c.applyLegacy(legacy, true)
+	c.AdminPassword = ""
+	return c, err
+}
+
+func parseLegacy(data []byte) (Legacy, error) {
+	var legacy Legacy
+	var e error
+	if len(data) == 0 || len(data) > 1<<20 {
+		return legacy, errors.New("legacy configuration exceeds size limits")
+	}
+	d := yaml.NewDecoder(bytes.NewReader(data))
 	var document yaml.Node
 	if e = d.Decode(&document); e != nil {
 		return legacy, errors.New("legacy configuration YAML is invalid")
