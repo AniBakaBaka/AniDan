@@ -36,7 +36,10 @@ COPY internal/ ./internal/
 COPY --from=corresponding-source /out/anidan-source.tar.gz /tmp/anidan-source.tar.gz
 ARG TARGETOS=linux
 ARG TARGETARCH
-RUN source_sha="$(sha256sum /tmp/anidan-source.tar.gz | cut -d ' ' -f 1)" \
+# Keep compiled Go packages across source edits and both target architectures.
+# CI persists this mount separately; the GHA layer exporter does not include it.
+RUN --mount=type=cache,id=anidan-go-build,target=/root/.cache/go-build \
+    source_sha="$(sha256sum /tmp/anidan-source.tar.gz | cut -d ' ' -f 1)" \
     && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
     -buildvcs=false -trimpath -ldflags="-s -w -X github.com/AniBakaBaka/AniDan/internal/server.SourceArchiveSHA256=${source_sha}" -o /out/anidan ./cmd/anidan
 

@@ -13,6 +13,13 @@ import (
 
 const commonEpisodeBlacklist = `^(.*?)((.+?版)|(特(别|典))|((导|演)员|嘉宾|角色)访谈|福利|彩蛋|花絮|预告|特辑|专访|访谈|幕后|周边|资讯|看点|速看|回顾|盘点|合集|PV|MV|CM|OST|ED|OP|BD|特典|SP|NCOP|NCED|MENU|Web-DL|rip|x264|x265|aac|flac)(.*?)$`
 
+func defaultEpisodeBlacklist(name string) string {
+	if name == "tencent" {
+		return provider.TencentEpisodeBlacklistDefault
+	}
+	return ""
+}
+
 func sourceConfigKey(name, key string) string {
 	if key == name+"Cookie" || strings.HasPrefix(key, "dandanplay_") {
 		return key
@@ -72,7 +79,8 @@ func (s *Server) registerSources(m *http.ServeMux) {
 		writeJSON(w, 200, map[string]any{"commonBlacklist": commonEpisodeBlacklist})
 	}))
 	m.HandleFunc("GET /api/ui/scrapers/{providerName}/default-blacklist", s.operator(func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, 200, map[string]any{"providerName": r.PathValue("providerName"), "defaultBlacklist": ""})
+		name := r.PathValue("providerName")
+		writeJSON(w, 200, map[string]any{"providerName": name, "defaultBlacklist": defaultEpisodeBlacklist(name)})
 	}))
 	m.HandleFunc("GET /api/control/scrapers", s.operator(s.scrapersList))
 	m.HandleFunc("PUT /api/control/scrapers", s.operator(s.scrapersUpdate))
@@ -103,7 +111,7 @@ func (s *Server) sourceConfigGet(w http.ResponseWriter, r *http.Request) {
 		out["useProxy"] = boolean(row["use_proxy"])
 	}
 	out[camel("scraper_"+name+"_log_responses")] = cfg["logRawResponses"] == "true"
-	out[name+"EpisodeBlacklistRegex"] = s.setting(r.Context(), name+"_episode_blacklist_regex", "")
+	out[name+"EpisodeBlacklistRegex"] = s.setting(r.Context(), name+"_episode_blacklist_regex", defaultEpisodeBlacklist(name))
 	out["scraper_"+name+"_search_timeout"] = cfg["timeoutSeconds"]
 	writeJSON(w, 200, out)
 }
@@ -265,37 +273,53 @@ func (s *Server) sourceEpisodesWithCache(ctx context.Context, name, media string
 	if e != nil {
 		return nil, nil, e
 	}
-	patterns := []*recognition.Regex{}
-	for _, key := range []string{name + "_episode_blacklist_regex", "globalEpisodeTitleFilter"} {
-		if raw := s.setting(ctx, key, ""); raw != "" {
-			re, e := recognition.CompileRegexCase(raw, false)
+	patterns := make([]*recognition.Regex, 2)
+	for i, key := range []string{name + "_episode_blacklist_regex", "globalEpisodeTitleFilter"} {
+		fallback := ""
+		if i == 0 {
+			fallback = defaultEpisodeBlacklist(name)
+		}
+		if raw := s.setting(ctx, key, fallback); raw != "" {
+			re, e := recognition.CompileRegexCase(raw, name == "tencent" && i == 0)
 			if e != nil {
 				return nil, nil, fmt.Errorf("%s: %w", key, e)
 			}
-			patterns = append(patterns, re)
+			patterns[i] = re
 		}
 	}
-	out := []provider.Episode{}
+	out := append([]provider.Episode{}, eps...)
 	excluded := []map[string]any{}
-	for _, ep := range eps {
-		if err := ctx.Err(); err != nil {
-			return nil, nil, err
-		}
-		reason := ""
-		for _, re := range patterns {
-			matched, err := re.MatchString(ep.Title)
-			if err != nil {
+	for stage, re := range patterns {
+		kept := out[:0]
+		for _, ep := range out {
+			if err := ctx.Err(); err != nil {
 				return nil, nil, err
 			}
+			matched := false
+			if re != nil {
+				var err error
+				matched, err = re.MatchString(ep.Title)
+				if err != nil {
+					return nil, nil, err
+				}
+			}
 			if matched {
-				reason = "分集标题黑名单"
-				break
+				excluded = append(excluded, map[string]any{"provider": name, "episodeId": ep.ID, "title": ep.Title, "episodeIndex": ep.Index, "url": ep.URL, "filterReason": "分集标题黑名单"})
+			} else {
+				kept = append(kept, ep)
 			}
 		}
-		if reason != "" {
-			excluded = append(excluded, map[string]any{"provider": name, "episodeId": ep.ID, "title": ep.Title, "episodeIndex": ep.Index, "url": ep.URL, "filterReason": reason})
-		} else {
-			out = append(out, ep)
+		out = kept
+		if name == "tencent" && stage == 0 {
+			// Misaka numbers Tencent episodes after its provider blacklist, then
+			// formats numeric titles. Global/single-series filters run afterwards
+			// and must retain these indices. Never mutate a cached raw listing.
+			for i := range out {
+				out[i].Index = i + 1
+				if title := strings.TrimSpace(out[i].Title); title != "" && strings.Trim(title, "0123456789") == "" {
+					out[i].Title = "第" + title + "集"
+				}
+			}
 		}
 	}
 	return out, excluded, nil

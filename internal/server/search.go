@@ -681,7 +681,7 @@ func (s *Server) runImportRequest(ctx context.Context, raw json.RawMessage, prog
 			}
 			if current != nil && str(current["provider_episode_id"]) != ep.ID {
 				failedIndex = ep.Index
-				return errWorkflowEpisodeConflict
+				return workflowEpisodeConflict(int64(ep.Index))
 			}
 		}
 		return nil

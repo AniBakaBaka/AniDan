@@ -10,7 +10,11 @@ import (
 	"github.com/AniBakaBaka/AniDan/internal/store"
 )
 
-var errWorkflowEpisodeConflict = errors.New("existing episode has a different provider identity; explicit remapping or a separate source is required")
+var errWorkflowEpisodeConflict = errors.New("旧分集与本次导入的视频 ID 不一致，已保留原记录；请检查分集过滤和集数偏移，确认后重新映射或使用独立数据源")
+
+func workflowEpisodeConflict(index int64) error {
+	return fmt.Errorf("第 %d 集：%w", index, errWorkflowEpisodeConflict)
+}
 
 // captureWorkflowEpisodes retains the library mapping from before any remote
 // listing/resolution. Later per-episode checks must not adopt a reindex or
@@ -110,7 +114,7 @@ func (s *Server) prepareWorkflowEpisode(ctx context.Context, src store.Row, inde
 		}
 		if len(rows) == 1 {
 			if bindProvider && str(rows[0]["provider_episode_id"]) != providerID {
-				return errWorkflowEpisodeConflict
+				return workflowEpisodeConflict(index)
 			}
 			result = rows[0]
 			return nil
@@ -150,7 +154,7 @@ func (s *Server) prepareWorkflowEpisodeExpected(ctx context.Context, src, existi
 		return nil, errors.New("expected episode index does not match requested mapping")
 	}
 	if bindProvider && (providerID == "" || str(existing["provider_episode_id"]) != providerID) {
-		return nil, errWorkflowEpisodeConflict
+		return nil, workflowEpisodeConflict(index)
 	}
 	err := s.libTransaction(ctx, func(tx *sql.Tx) error { return s.validateDownloadIdentity(ctx, tx, existing, src) })
 	return existing, err

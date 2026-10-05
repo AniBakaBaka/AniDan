@@ -8,8 +8,28 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"regexp"
+	"sort"
+	"strconv"
 	"strings"
 )
+
+// Misaka's ordinary-series order is numeric episode titles first, with a
+// stable order for everything else. RPC tab order is not episode order.
+var tencentEpisodeNumber = regexp.MustCompile(`^(?:第)?([0-9]+)(?:集|话)?$`)
+
+func tencentEpisodeSortIndex(title string) int {
+	m := tencentEpisodeNumber.FindStringSubmatch(strings.TrimSpace(title))
+	if len(m) == 2 {
+		if n, err := strconv.Atoi(m[1]); err == nil && n > 0 {
+			return n
+		}
+	}
+	return int(^uint(0) >> 1)
+}
+
+// Historical Tencent default; an explicitly empty database setting disables it.
+const TencentEpisodeBlacklistDefault = `^(.*?)(vlog|reaction|纯享|加更|抢先|预告|花絮|特辑|彩蛋|专访|幕后|直播|未播|衍生|番外|会员|片花|精华|看点|速看|解读|影评|解说|吐槽|盘点|拍摄花絮|制作花絮|幕后花絮|未播花絮|独家花絮|花絮特辑|先导预告|终极预告|正式预告|官方预告|彩蛋片段|删减片段|未播片段|番外彩蛋|精彩片段|精彩看点|精彩回顾|精彩集锦|看点解析|看点预告|NG镜头|NG花絮|番外篇|番外特辑|制作特辑|拍摄特辑|幕后特辑|导演特辑|演员特辑|片尾曲|插曲|主题曲|背景音乐|OST|音乐MV|歌曲MV|前季回顾|剧情回顾|往期回顾|内容总结|剧情盘点|精选合集|剪辑合集|混剪视频|独家专访|演员访谈|导演访谈|主创访谈|媒体采访|发布会采访|抢先看|抢先版|试看版|短剧|精编|会员版|Plus|独家版|特别版|短片|合唱)(.*?)$`
 
 func validTencentSegment(name string) bool {
 	if len(name) == 0 || len(name) > 256 {
@@ -147,6 +167,12 @@ func (l *Legacy) tencentEpisodes(ctx context.Context, id string) ([]Episode, err
 				out = append(out, Episode{ID: vid, Title: strings.TrimSpace(textFirst(r["union_title"], r["title"])), Index: len(out) + 1, URL: "https://v.qq.com/x/cover/" + id + "/" + vid + ".html"})
 			}
 		}
+	}
+	sort.SliceStable(out, func(i, j int) bool {
+		return tencentEpisodeSortIndex(out[i].Title) < tencentEpisodeSortIndex(out[j].Title)
+	})
+	for i := range out {
+		out[i].Index = i + 1
 	}
 	return out, nil
 }
