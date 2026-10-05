@@ -2,16 +2,22 @@
   "dependencySources": "Pinned public dependencies are identified in go.mod/go.sum and web/package-lock.json; dependency source trees are not vendored.",
   "files": [
     {
-      "bytes": 356,
+      "bytes": 348,
       "mode": "0o644",
       "path": ".dockerignore",
-      "sha256": "9c9eb23bc830ccab380243738b36b437aec221efc5430faf7dc04b1bd71c5432"
+      "sha256": "0d254ee96dd7fc50329e9824e647274ddd102246524dbe4f4ef6b6ec30de590a"
     },
     {
-      "bytes": 2875,
+      "bytes": 3025,
+      "mode": "0o644",
+      "path": ".github/workflows/docker.yml",
+      "sha256": "2b1d1bec3f08edcc7dbc91fdd3944d9511f4280782cec5d530d52499d2085a78"
+    },
+    {
+      "bytes": 2940,
       "mode": "0o644",
       "path": "Dockerfile",
-      "sha256": "78bfbf9525be1a2f40ca6cd500b6621e96e67f8f31c00fe060590d19dd46b7b7"
+      "sha256": "92c822dffb16afbb4e76a7675106503fe6f2c1bbb2b53463673e22a9e069371a"
     },
     {
       "bytes": 34523,
@@ -4988,16 +4994,16 @@
       "sha256": "04593aec811db61e265a0e60f72acff5ae3d9ab77727623279b2cc53f1cde363"
     },
     {
-      "bytes": 5527,
+      "bytes": 7288,
       "mode": "0o644",
       "path": "README.md",
-      "sha256": "31e6c4dcd5a5473db985f834746adff8e777f14bb0f65e7816d1e3e8a2e000a2"
+      "sha256": "985b2fb2410271aac9e587d04c704c5c057852dafe90c602a4b7697d8933841b"
     },
     {
-      "bytes": 1848,
+      "bytes": 1960,
       "mode": "0o644",
       "path": "SOURCE_DISTRIBUTION.md",
-      "sha256": "59f10e6cfad3189430b9a64f9be3a7e5da83d350df064fc8f104e749f7259b2e"
+      "sha256": "44622428a5dcc9c892ada9a90b61dfe110c1a2e86228f639295e625d64144284"
     },
     {
       "bytes": 4871,
@@ -5024,10 +5030,10 @@
       "sha256": "9fa3f67088d2c635996b714db5e922fe831f4acbca14a39264e0ca6358fdd61b"
     },
     {
-      "bytes": 1086,
+      "bytes": 1109,
       "mode": "0o644",
       "path": "compose.yaml",
-      "sha256": "43a0a033ecba5af6181f777ea0b86a91a83f409410c1d69e001ad0c68c6671e7"
+      "sha256": "567a7348c771e3267d5443900a73ef814219be9a3dfdf557b49336a33abf3a86"
     },
     {
       "bytes": 1631,
@@ -6698,10 +6704,10 @@
       "sha256": "e88238fa4acd2c08c685112ac5f7dfaffb9897fd3051e99f2eb3c85e120fe930"
     },
     {
-      "bytes": 7587,
+      "bytes": 7680,
       "mode": "0o644",
       "path": "scripts/package-source.py",
-      "sha256": "6755eea1f3767ac28de3e11095ee9e7794629a06e8ed456bdb84f65bc82c1d37"
+      "sha256": "7a0336f021d50e869dde83b067adb02d0932a9193bbcebf3a2c387e43705b4b7"
     },
     {
       "bytes": 665,
@@ -8010,6 +8016,6 @@
   "license": "AGPL-3.0-only",
   "project": "AniDan",
   "scope": "Allowlisted application source, build scripts, assets, documentation and notices; no runtime configuration or captured live comment pools.",
-  "sourceSha256": "f3ce14ee0636b9de2fc5023bae8d4994b2a9927c47678dafdf8c6462a08bb608",
+  "sourceSha256": "ac2b4801f04d429abe3a6051670b590e69c1b3f1531a329b95a0f68f1202503d",
   "version": "0.1.0-stage30"
 }

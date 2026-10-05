@@ -18,6 +18,7 @@ RUN VITE_ANIDAN_SOURCE_URL="${ANIDAN_SOURCE_URL:-/source-code}" npm run build
 FROM --platform=$BUILDPLATFORM python:3.12-alpine AS corresponding-source
 WORKDIR /src
 COPY Dockerfile .dockerignore Makefile README.md LICENSE LICENSING.md SOURCE_DISTRIBUTION.md THIRD_PARTY_NOTICES.md go.mod go.sum compose.yaml ./
+COPY .github/workflows/docker.yml ./.github/workflows/docker.yml
 COPY cmd/ ./cmd/
 COPY internal/ ./internal/
 COPY web/ ./web/

@@ -3,7 +3,7 @@
 # Installation code: docker compose logs anidan
 services:
   anidan:
-    image: anidan:local
+    image: ${ANIDAN_IMAGE:-10c3/anidan:latest}
     build:
       context: .
       args:

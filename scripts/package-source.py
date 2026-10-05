@@ -19,17 +19,17 @@ import tempfile
 ROOT_FILES = {"Dockerfile", ".dockerignore", "Makefile", "README.md", "LICENSE",
               "LICENSING.md", "SOURCE_DISTRIBUTION.md", "THIRD_PARTY_NOTICES.md",
               "go.mod", "go.sum", "compose.yaml"}
-ROOT_DIRS = {"cmd", "internal", "web", "static", "scripts", "LICENSES"}
+ROOT_DIRS = {"cmd", "internal", "web", "static", "scripts", "LICENSES", ".github"}
 BLOCK_DIRS = {".git", ".svn", ".hg", "node_modules", "dist",
               "__pycache__", ".cache",
               "playwright-report", "test-results", ".next", "live-evidence"}
 BLOCK_SUFFIXES = {".db", ".sqlite", ".sqlite3", ".log", ".pyc", ".pyo", ".so", ".pyd",
                   ".exe", ".dll", ".dylib", ".tar", ".gz", ".zip", ".pem", ".key", ".p12", ".pfx"}
-DOT_FILES = {".dockerignore", ".npmrc", ".gitignore", ".editorconfig"}
+DOT_FILES = {".dockerignore", ".npmrc", ".gitignore", ".editorconfig", ".github"}
 REQUIRED = {"LICENSE", "THIRD_PARTY_NOTICES.md", "go.mod", "go.sum", "Dockerfile",
             "Makefile", "compose.yaml", "web/package.json", "web/package-lock.json",
             "LICENSING.md", "SOURCE_DISTRIBUTION.md",
-            "scripts/package-source.py", "internal/server/server.go"}
+            "scripts/package-source.py", "internal/server/server.go", ".github/workflows/docker.yml"}
 MAX_FILE = 32 * 1024 * 1024
 MAX_TOTAL = 256 * 1024 * 1024
 
@@ -57,7 +57,7 @@ def collect(root):
     total = 0
     for directory, dirs, names in os.walk(root, followlinks=False):
         base = Path(directory)
-        dirs[:] = sorted(x for x in dirs if x not in BLOCK_DIRS and not x.startswith(".") and
+        dirs[:] = sorted(x for x in dirs if x not in BLOCK_DIRS and (not x.startswith(".") or (base == root and x == ".github")) and
                          (base != root or x in ROOT_DIRS))
         for name in sorted(names):
             path = base / name
