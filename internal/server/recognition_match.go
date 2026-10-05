@@ -327,7 +327,11 @@ func (s *Server) recognitionFallbackAllowed(ctx context.Context, kind, token, in
 		if e != nil {
 			return false, e
 		}
-		if re.MatchString(input) {
+		matched, err := re.MatchString(input)
+		if err != nil {
+			return false, err
+		}
+		if matched {
 			return false, nil
 		}
 	}

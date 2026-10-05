@@ -24,6 +24,23 @@
     },
     {
       "ecosystem": "go",
+      "name": "github.com/dlclark/regexp2",
+      "version": "v1.11.5",
+      "replacement": null,
+      "notices": [
+        {
+          "path": "LICENSES/dependencies/go/github.com_dlclark_regexp2_v1.11.5/LICENSE",
+          "sha256": "9be5d04bb4d706914d5bf943710da4afeb42048f7c529902fb57c82762a991a9"
+        },
+        {
+          "path": "LICENSES/dependencies/go/github.com_dlclark_regexp2_v1.11.5/ATTRIB",
+          "sha256": "8db174fc98abc02f154c20ffdacdfbd37528ef25e0f098e20a2c21defd76329a"
+        }
+      ],
+      "license_metadata": "MIT"
+    },
+    {
+      "ecosystem": "go",
       "name": "github.com/dustin/go-humanize",
       "version": "v1.0.1",
       "replacement": null,

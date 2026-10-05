@@ -76,18 +76,18 @@ func PrepareInstallation(ctx context.Context, cfg config.Config) (warnings []str
 	// Check the actual runtime UID can persist files before modifying a new DB.
 	f, err := os.CreateTemp(cfg.DataDir, ".installation-")
 	if err != nil {
-		return nil, errors.New("数据目录不可写，请检查容器用户权限")
+		return nil, installationDirectoryError(cfg.DataDir, err)
 	}
 	f.Close()
 	os.Remove(f.Name())
 	for _, dir := range []string{"danmaku", "image", "logs"} {
 		path := filepath.Join(cfg.DataDir, dir)
 		if err := os.MkdirAll(path, 0700); err != nil {
-			return nil, errors.New("无法创建运行目录：" + path)
+			return nil, installationDirectoryError(path, err)
 		}
 		probe, err := os.CreateTemp(path, ".installation-")
 		if err != nil {
-			return nil, errors.New("运行目录不可写：" + path)
+			return nil, installationDirectoryError(path, err)
 		}
 		probe.Close()
 		os.Remove(probe.Name())

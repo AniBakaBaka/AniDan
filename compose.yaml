@@ -10,6 +10,8 @@ services:
         ANIDAN_SOURCE_URL: ${ANIDAN_SOURCE_URL:-/source-code}
     restart: unless-stopped
     init: true
+    # Read/write existing Misaka bind mounts without changing their ownership.
+    user: "0:0"
     ports:
       - "${ANIDAN_BIND_IP:-0.0.0.0}:${ANIDAN_PORT:-7769}:7769"
     environment:
@@ -31,6 +33,7 @@ services:
     tmpfs:
       - /tmp:size=128m,mode=1777
     cap_drop: [ALL]
+    cap_add: [DAC_OVERRIDE]
     security_opt: [no-new-privileges:true]
     logging:
       driver: json-file

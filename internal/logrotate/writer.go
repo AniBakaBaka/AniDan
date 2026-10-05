@@ -34,6 +34,7 @@ var (
 // safety failure, outside the writer lock. It must not panic. A rejected oversized
 // record is not a latched failure. Use DefaultMaxBytes and DefaultBackups for the
 // application defaults: at most 40 MiB across app.log and app.log.1 through .3.
+// Older numeric archives outside this range are preserved but not managed.
 type Options struct {
 	MaxBytes  int64
 	Backups   int
@@ -59,7 +60,8 @@ type Writer struct {
 
 // Open uses an existing directory and preserves existing in-limit regular logs.
 // It rejects symlinks, nonregular/hardlinked files, oversized existing logs, and
-// unexpected app.log.* entries (including archives outside the retention limit).
+// unexpected app.log.* entries. Numeric archives outside the retention limit
+// belong to the previous logger and are left untouched, outside our size bound.
 // Unix directories and managed files must not be group- or world-writable;
 // Windows directory/file ACLs remain the operator's responsibility.
 // Such legacy files require operator review/removal before startup; Open never
@@ -201,8 +203,11 @@ func (w *Writer) preflight() (map[string]bool, error) {
 			}
 			if name != filename {
 				n, err := strconv.Atoi(strings.TrimPrefix(name, filename+"."))
-				if err != nil || n < 1 || n > w.opts.Backups || name != archive(n) {
+				if err != nil || n < 1 || name != archive(n) {
 					return nil, fmt.Errorf("unexpected log archive %q; operator cleanup required", name)
+				}
+				if n > w.opts.Backups {
+					continue
 				}
 			}
 			f, err := w.openRegular(name, os.O_RDONLY, false)

@@ -3,6 +3,7 @@ module github.com/AniBakaBaka/AniDan
 go 1.26.0
 
 require (
+	github.com/dlclark/regexp2 v1.11.5
 	github.com/fxamacker/cbor/v2 v2.9.4
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/go-webauthn/webauthn v0.18.2

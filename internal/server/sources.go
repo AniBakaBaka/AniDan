@@ -3,10 +3,11 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"github.com/AniBakaBaka/AniDan/internal/provider"
+	"github.com/AniBakaBaka/AniDan/internal/recognition"
 	"github.com/AniBakaBaka/AniDan/internal/store"
 	"net/http"
-	"regexp"
 	"strings"
 )
 
@@ -147,7 +148,7 @@ func (s *Server) sourceConfigPut(w http.ResponseWriter, r *http.Request) {
 		if k == name+"EpisodeBlacklistRegex" || k == name+"_episode_blacklist_regex" {
 			pattern := str(v)
 			if pattern != "" {
-				if _, e = regexp.Compile(pattern); e != nil {
+				if _, e = recognition.CompileRegexCase(pattern, false); e != nil {
 					httpError(w, 400, e.Error())
 					return
 				}
@@ -264,12 +265,12 @@ func (s *Server) sourceEpisodesWithCache(ctx context.Context, name, media string
 	if e != nil {
 		return nil, nil, e
 	}
-	patterns := []*regexp.Regexp{}
+	patterns := []*recognition.Regex{}
 	for _, key := range []string{name + "_episode_blacklist_regex", "globalEpisodeTitleFilter"} {
 		if raw := s.setting(ctx, key, ""); raw != "" {
-			re, e := regexp.Compile(raw)
+			re, e := recognition.CompileRegexCase(raw, false)
 			if e != nil {
-				return nil, nil, e
+				return nil, nil, fmt.Errorf("%s: %w", key, e)
 			}
 			patterns = append(patterns, re)
 		}
@@ -277,9 +278,16 @@ func (s *Server) sourceEpisodesWithCache(ctx context.Context, name, media string
 	out := []provider.Episode{}
 	excluded := []map[string]any{}
 	for _, ep := range eps {
+		if err := ctx.Err(); err != nil {
+			return nil, nil, err
+		}
 		reason := ""
 		for _, re := range patterns {
-			if re.MatchString(ep.Title) {
+			matched, err := re.MatchString(ep.Title)
+			if err != nil {
+				return nil, nil, err
+			}
+			if matched {
 				reason = "分集标题黑名单"
 				break
 			}

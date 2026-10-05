@@ -11,12 +11,30 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/AniBakaBaka/AniDan/internal/config"
 	"github.com/go-sql-driver/mysql"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 )
+
+func installationDirectoryError(path string, err error) error {
+	identity := "当前进程用户"
+	if uid, gid := os.Geteuid(), os.Getegid(); uid >= 0 && gid >= 0 {
+		identity = fmt.Sprintf("容器运行用户 UID/GID %d:%d", uid, gid)
+	}
+	reason := "请检查目录权限和存储状态"
+	switch {
+	case errors.Is(err, os.ErrPermission):
+		reason = "请在宿主机授予该用户对此挂载目录及其子目录、文件的读写权限；挂载设为读写不会修改宿主机权限"
+	case errors.Is(err, syscall.EROFS):
+		reason = "该路径所在文件系统只读，请将数据目录挂载为读写；仅原 Compose 配置文件可保持只读"
+	case errors.Is(err, syscall.ENOSPC):
+		reason = "存储空间或 inode 已用尽，请检查该挂载目录所在磁盘"
+	}
+	return fmt.Errorf("数据目录不可写：%s（%s）。%s", path, identity, reason)
+}
 
 // Keep the cause for classification, never format raw driver errors: they may
 // contain passwords, DSNs or server-provided account and database names.

@@ -4,7 +4,6 @@ package recognition
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -13,20 +12,7 @@ import (
 const DefaultBlacklistCN = `特典|预告|广告|菜单|花絮|特辑|速看|资讯|彩蛋|直拍|直播回顾|片头|片尾|幕后|映像|番外篇|纪录片|访谈|番外|短片|加更|走心|解忧|纯享|解读|揭秘|赏析`
 const DefaultBlacklistEN = `NC|OP|ED|SP|OVA|OAD|CM|PV|MV|BDMenu|Menu|Bonus|Recap|Teaser|Trailer|Preview|CD|Disc|Scan|Sample|Logo|Info|EDPV|SongSpot|BDSpot`
 
-// CompileRegex deliberately uses linear-time RE2. Backreferences, lookaround,
-// and other Python-only constructs produce an explicit error, never a fallback.
-func CompileRegex(pattern string) (*regexp.Regexp, error) {
-	if len(pattern) > 16384 {
-		return nil, fmt.Errorf("pattern exceeds 16 KiB")
-	}
-	r, e := regexp.Compile("(?i)" + pattern)
-	if e != nil {
-		return nil, fmt.Errorf("unsupported or invalid RE2 pattern: %w", e)
-	}
-	return r, nil
-}
-
-type Blacklist struct{ cn, en *regexp.Regexp }
+type Blacklist struct{ cn, en *Regex }
 
 func NewBlacklist(cn, en string) (*Blacklist, error) {
 	b := &Blacklist{}
@@ -34,29 +20,36 @@ func NewBlacklist(cn, en string) (*Blacklist, error) {
 	if cn != "" {
 		b.cn, e = CompileRegex(cn)
 		if e != nil {
-			return nil, e
+			return nil, fmt.Errorf("search_result_global_blacklist_cn: %w", e)
 		}
 	}
 	if en != "" {
 		b.en, e = CompileRegex("(?:" + en + ")(?:[0-9]{1,2})?(?:\\s|_ALL)?")
 		if e != nil {
-			return nil, e
+			return nil, fmt.Errorf("search_result_global_blacklist_eng: %w", e)
 		}
 	}
 	return b, nil
 }
 func word(r rune) bool { return unicode.IsLetter(r) || unicode.IsNumber(r) || r == '_' }
-func (b *Blacklist) Match(title string) bool {
+func (b *Blacklist) Match(title string) (bool, error) {
 	if b == nil {
-		return false
+		return false, nil
 	}
-	if b.cn != nil && b.cn.MatchString(title) {
-		return true
+	if b.cn != nil {
+		matched, err := b.cn.MatchString(title)
+		if err != nil || matched {
+			return matched, err
+		}
 	}
 	if b.en == nil {
-		return false
+		return false, nil
 	}
-	for _, loc := range b.en.FindAllStringIndex(title, -1) {
+	matches, err := b.en.FindAllStringIndex(title, -1)
+	if err != nil {
+		return false, err
+	}
+	for _, loc := range matches {
 		lo, hi := loc[0], loc[1]
 		left := lo == 0
 		right := hi == len(title)
@@ -71,15 +64,15 @@ func (b *Blacklist) Match(title string) bool {
 			right = n == ']' || n == '】' || word(n) != word(last)
 		}
 		if left && right {
-			return true
+			return true, nil
 		}
 	}
-	return false
+	return false, nil
 }
 
 type EpisodeFilter struct {
 	Title, Pattern, Provider, MediaID string
-	re                                *regexp.Regexp
+	re                                *Regex
 	Line                              int
 }
 
@@ -130,8 +123,11 @@ func (f EpisodeFilter) Applies(title, provider, mediaID string, aliases []string
 	}
 	return false
 }
-func (f EpisodeFilter) Match(episodeTitle string) bool {
-	return f.re != nil && f.re.MatchString(episodeTitle)
+func (f EpisodeFilter) Match(episodeTitle string) (bool, error) {
+	if f.re == nil {
+		return false, nil
+	}
+	return f.re.MatchString(episodeTitle)
 }
 
 type Conflict struct {

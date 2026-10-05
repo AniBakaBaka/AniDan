@@ -197,11 +197,16 @@ func (s *Server) recognitionRegexTest(w http.ResponseWriter, r *http.Request) {
 			invalids = append(invalids, map[string]any{"label": v.Label, "pattern": pattern, "error": e.Error()})
 			continue
 		}
-		if m := re.FindStringIndex(in.Text); m != nil {
+		m, e := re.FindStringIndex(in.Text)
+		if e != nil {
+			invalids = append(invalids, map[string]any{"label": v.Label, "pattern": pattern, "error": e.Error()})
+			continue
+		}
+		if m != nil {
 			matches = append(matches, map[string]any{"label": v.Label, "pattern": pattern, "matchedText": in.Text[m[0]:m[1]]})
 		}
 	}
-	writeJSON(w, 200, map[string]any{"matched": len(matches) > 0, "matches": matches, "invalids": invalids, "engine": "RE2"})
+	writeJSON(w, 200, map[string]any{"matched": len(matches) > 0, "matches": matches, "invalids": invalids, "engine": "RE2 + bounded regexp2 compatibility"})
 }
 func (s *Server) recognitionSinglePut(w http.ResponseWriter, r *http.Request) {
 	var in struct {
@@ -323,7 +328,14 @@ func (s *Server) filterSearchResults(ctx context.Context, rows []provider.Search
 	}
 	out := make([]provider.SearchResult, 0, len(rows))
 	for _, v := range rows {
-		if !b.Match(v.Title) {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		matched, err := b.Match(v.Title)
+		if err != nil {
+			return nil, err
+		}
+		if !matched {
 			out = append(out, v)
 		}
 	}
@@ -340,11 +352,18 @@ func (s *Server) filterEpisodes(ctx context.Context, episodes []provider.Episode
 	if enabled && global != "" {
 		re, e := recognition.CompileRegex(global)
 		if e != nil {
-			return nil, e
+			return nil, fmt.Errorf("globalEpisodeTitleFilterRegex: %w", e)
 		}
 		kept := out[:0]
 		for _, ep := range out {
-			if !re.MatchString(ep.Title) {
+			if err := ctx.Err(); err != nil {
+				return nil, err
+			}
+			matched, err := re.MatchString(ep.Title)
+			if err != nil {
+				return nil, err
+			}
+			if !matched {
 				kept = append(kept, ep)
 			}
 		}
@@ -356,7 +375,14 @@ func (s *Server) filterEpisodes(ctx context.Context, episodes []provider.Episode
 		}
 		kept := out[:0]
 		for _, ep := range out {
-			if !f.Match(ep.Title) {
+			if err := ctx.Err(); err != nil {
+				return nil, err
+			}
+			matched, err := f.Match(ep.Title)
+			if err != nil {
+				return nil, err
+			}
+			if !matched {
 				kept = append(kept, ep)
 			}
 		}

@@ -127,7 +127,7 @@ func openApplicationRuntime(ctx context.Context, cfg config.Config, activation *
 		return nil, err
 	}
 	if err := os.MkdirAll(filepath.Join(cfg.DataDir, "logs"), 0700); err != nil {
-		return nil, err
+		fmt.Fprintf(os.Stderr, "AniDan: cannot create log directory; stderr logging continues: %v\n", err)
 	}
 	logfile, err := logrotate.Open(filepath.Join(cfg.DataDir, "logs"), logrotate.Options{
 		MaxBytes: logrotate.DefaultMaxBytes,
@@ -137,18 +137,24 @@ func openApplicationRuntime(ctx context.Context, cfg config.Config, activation *
 		},
 	})
 	if err != nil {
-		return nil, err
+		fmt.Fprintf(os.Stderr, "AniDan: app.log file logging unavailable; stderr logging continues: %v\n", err)
 	}
 	initialized := false
 	defer func() {
 		if !initialized {
 			slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, nil)))
-			if closeErr := logfile.Close(); closeErr != nil {
-				resultErr = &runtimeCloseUncertain{errors.Join(resultErr, closeErr)}
+			if logfile != nil {
+				if closeErr := logfile.Close(); closeErr != nil {
+					resultErr = &runtimeCloseUncertain{errors.Join(resultErr, closeErr)}
+				}
 			}
 		}
 	}()
-	slog.SetDefault(slog.New(slog.NewJSONHandler(io.MultiWriter(os.Stderr, logfile), nil)))
+	var logOutput io.Writer = os.Stderr
+	if logfile != nil {
+		logOutput = io.MultiWriter(os.Stderr, logfile)
+	}
+	slog.SetDefault(slog.New(slog.NewJSONHandler(logOutput, nil)))
 	db, err := store.Open(ctx, cfg.Driver, cfg.DSN)
 	if err != nil {
 		switch strings.ToLower(cfg.Driver) {

@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -176,7 +175,7 @@ func (s *Server) controlScraperPut(w http.ResponseWriter, r *http.Request) {
 	settings, values := map[string]string{}, map[string]string{}
 	if in.Blacklist != nil {
 		if *in.Blacklist != "" {
-			if _, e := regexp.Compile(*in.Blacklist); e != nil {
+			if _, e := recognition.CompileRegexCase(*in.Blacklist, false); e != nil {
 				httpError(w, 422, e.Error())
 				return
 			}
