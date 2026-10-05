@@ -1,0 +1,16 @@
+OpenCC traditional/simplified conversion dictionaries
+Copyright BYVoid and OpenCC contributors; longbridge/opencc contributors.
+Apache License 2.0. See LICENSE in this directory.
+
+These four dictionary files are unmodified copies from:
+https://github.com/longbridgeapp/opencc/tree/eec5c563bc3271ddc2d3a4438d798f560d4187a2/dictionary
+Tag: v0.3.13. Upstream dictionary project: https://github.com/BYVoid/OpenCC
+
+AniDan's Go dictionary matcher is an independent implementation. No OpenCC Go,
+liuzl/da, or cedar-go runtime source is included or linked by this component.
+
+SHA-256:
+6d22f2fa843eb3250c255aabe40b864f7f8c0a92f3d29e3b33d24f08acf163a9 STPhrases.txt
+57fc87219345ffbbee6b53a7a09962352903c5454c8b251d56b12ff8494bccf8 STCharacters.txt
+b2ef895dd4953b4bb77fc8ef8d26a2a9ca6d43a760ed9a1d767672cfafa6324f TSPhrases.txt
+6b5a0a799bea2bb22c001f635eaa3fc2904310f0c08addbff275477a80ecf09a TSCharacters.txt

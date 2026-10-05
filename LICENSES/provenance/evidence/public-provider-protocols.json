@@ -1,0 +1,38 @@
+{
+  "repository": "https://github.com/huangxd-/danmu_api",
+  "commit": "fc1b7ff6add61d8af24c9bf978253273833f5afc",
+  "license": "AGPL-3.0 root text inspected; no transitive legal clearance claimed",
+  "execution": "text inspection only, no downloaded JavaScript executed",
+  "files": [
+    {
+      "path": "LICENSE",
+      "sha256": "20b067f86de375aae6db0f283ab2e65de24d537733b89bd58432c101259d84cf",
+      "bytes": 34522
+    },
+    {
+      "path": "danmu_api/sources/hongguo.js",
+      "sha256": "15e4af7f1aab2037449313a43dd57330b5d9b37453a5c437af4a24af8cd296a3",
+      "bytes": 50361
+    },
+    {
+      "path": "danmu_api/sources/maiduidui.js",
+      "sha256": "7e4909aeb9da726142c17a1f2b53df8fc189a6253ac58df5b0ee8806c41b8a6c",
+      "bytes": 14735
+    },
+    {
+      "path": "danmu_api/sources/migu.js",
+      "sha256": "fa477cfd4ccaed84ab3dd9453ea5dc1ea1731f730c06bc7c7b42d0b6f2f958ed",
+      "bytes": 14059
+    },
+    {
+      "path": "danmu_api/sources/xigua.js",
+      "sha256": "2b67a342a44ad577aca7275e25176a9d73c49ed7caff6dc1145a5ffc59779db6",
+      "bytes": 13991
+    },
+    {
+      "path": "danmu_api/utils/migu-util.js",
+      "sha256": "a947b6499efd845ca34119ead976b55cff3186ae2250d4751e5cfba00d2b3555",
+      "bytes": 3431
+    }
+  ]
+}

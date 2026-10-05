@@ -1,0 +1,38 @@
+# Start: docker compose up -d --build
+# Open http://localhost:7769 and complete the database/admin setup.
+# Installation code: docker compose logs anidan
+services:
+  anidan:
+    image: anidan:local
+    build:
+      context: .
+      args:
+        ANIDAN_SOURCE_URL: ${ANIDAN_SOURCE_URL:-/source-code}
+    restart: unless-stopped
+    init: true
+    ports:
+      - "${ANIDAN_BIND_IP:-0.0.0.0}:${ANIDAN_PORT:-7769}:7769"
+    environment:
+      ANIDAN_LISTEN: ":7769"
+      ANIDAN_CONFIG_DIR: /data
+      TZ: "${TZ:-Asia/Shanghai}"
+    volumes:
+      - anidan-data:/data
+      # To reuse Misaka, uncomment and point to its complete config directory.
+      # Stop the original application before connecting its database here.
+      # - /absolute/path/to/misaka/config:/app/config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  anidan-data:

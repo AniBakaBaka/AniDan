@@ -1,0 +1,28 @@
+{
+  "name": "AniDan",
+  "short_name": "AniDan",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff",
+  "theme_color": "#fff9fb",
+  "prefer_related_applications": false,
+  "description": "Self-hosted danmaku library and compatible player API",
+  "icons": [
+    {
+      "src": "/images/anidan-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/images/anidan-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    },
+    {
+      "src": "/images/anidan-logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
+    }
+  ]
+}

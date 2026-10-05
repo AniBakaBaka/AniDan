@@ -1,0 +1,2861 @@
+[
+  {
+    "name": "anime_groups",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "name",
+        "kind": "string",
+        "nullable": false,
+        "length": 200
+      },
+      {
+        "name": "sort_order",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 0
+      },
+      {
+        "name": "created_at",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [],
+    "indexes": []
+  },
+  {
+    "name": "anime",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "title",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "type",
+        "kind": "string",
+        "nullable": false,
+        "enum": [
+          "tv_series",
+          "movie",
+          "ova",
+          "other"
+        ],
+        "length": 9,
+        "has_default": true,
+        "default": "tv_series"
+      },
+      {
+        "name": "image_url",
+        "kind": "string",
+        "nullable": true,
+        "length": 512
+      },
+      {
+        "name": "local_image_path",
+        "kind": "string",
+        "nullable": true,
+        "length": 512
+      },
+      {
+        "name": "season",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 1
+      },
+      {
+        "name": "episode_count",
+        "kind": "integer",
+        "nullable": true
+      },
+      {
+        "name": "year",
+        "kind": "integer",
+        "nullable": true
+      },
+      {
+        "name": "created_at",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true
+      },
+      {
+        "name": "group_id",
+        "kind": "bigint",
+        "nullable": true,
+        "reference": "anime_groups.id",
+        "on_delete": "SET NULL"
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [],
+    "indexes": [
+      {
+        "name": "ix_anime_title",
+        "columns": [
+          "title"
+        ]
+      },
+      {
+        "name": "idx_title_fulltext",
+        "columns": [
+          "title"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "anime_sources",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "anime_id",
+        "kind": "bigint",
+        "nullable": false,
+        "reference": "anime.id",
+        "on_delete": "CASCADE"
+      },
+      {
+        "name": "source_order",
+        "kind": "integer",
+        "nullable": false
+      },
+      {
+        "name": "provider_name",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "media_id",
+        "kind": "string",
+        "nullable": false,
+        "length": 255
+      },
+      {
+        "name": "is_favorited",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": false
+      },
+      {
+        "name": "incremental_refresh_enabled",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": false
+      },
+      {
+        "name": "is_finished",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": false
+      },
+      {
+        "name": "incremental_refresh_failures",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 0
+      },
+      {
+        "name": "last_refresh_latest_episode_at",
+        "kind": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "created_at",
+        "kind": "datetime",
+        "nullable": false
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [
+      [
+        "anime_id",
+        "provider_name",
+        "media_id"
+      ],
+      [
+        "anime_id",
+        "source_order"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "episode",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false
+      },
+      {
+        "name": "source_id",
+        "kind": "bigint",
+        "nullable": false,
+        "reference": "anime_sources.id",
+        "on_delete": "CASCADE"
+      },
+      {
+        "name": "title",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "episode_index",
+        "kind": "integer",
+        "nullable": false
+      },
+      {
+        "name": "provider_episode_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "source_url",
+        "kind": "text",
+        "nullable": true,
+        "medium": false
+      },
+      {
+        "name": "danmaku_file_path",
+        "kind": "string",
+        "nullable": true,
+        "length": 1024
+      },
+      {
+        "name": "fetched_at",
+        "kind": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "comment_count",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 0
+      },
+      {
+        "name": "media_server_episode_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [
+      [
+        "source_id",
+        "episode_index"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "users",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "username",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "hashed_password",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "token",
+        "kind": "text",
+        "nullable": true,
+        "medium": false
+      },
+      {
+        "name": "token_update",
+        "kind": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "created_at",
+        "kind": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "is_otp",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": false
+      },
+      {
+        "name": "otp_secret",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [
+      [
+        "username"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "user_sessions",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "user_id",
+        "kind": "bigint",
+        "nullable": false,
+        "reference": "users.id",
+        "on_delete": "CASCADE"
+      },
+      {
+        "name": "jti",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "ip_address",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "user_agent",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "created_at",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true
+      },
+      {
+        "name": "last_used_at",
+        "kind": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "expires_at",
+        "kind": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "is_revoked",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": false
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [
+      [
+        "jti"
+      ]
+    ],
+    "indexes": [
+      {
+        "name": "ix_user_sessions_jti",
+        "columns": [
+          "jti"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "user_passkeys",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "user_id",
+        "kind": "bigint",
+        "nullable": false,
+        "reference": "users.id",
+        "on_delete": "CASCADE"
+      },
+      {
+        "name": "credential_id",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "public_key",
+        "kind": "text",
+        "nullable": false,
+        "medium": false
+      },
+      {
+        "name": "sign_count",
+        "kind": "bigint",
+        "nullable": false,
+        "has_default": true,
+        "default": 0
+      },
+      {
+        "name": "device_name",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "transports",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "created_at",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true
+      },
+      {
+        "name": "last_used_at",
+        "kind": "datetime",
+        "nullable": true
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [
+      [
+        "credential_id"
+      ]
+    ],
+    "indexes": [
+      {
+        "name": "ix_user_passkeys_credential_id",
+        "columns": [
+          "credential_id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "scrapers",
+    "columns": [
+      {
+        "name": "provider_name",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "is_enabled",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": true
+      },
+      {
+        "name": "display_order",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 0
+      },
+      {
+        "name": "use_proxy",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": false
+      },
+      {
+        "name": "total_searches",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 0,
+        "server_default": "0"
+      },
+      {
+        "name": "success_count",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 0,
+        "server_default": "0"
+      },
+      {
+        "name": "fail_count",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 0,
+        "server_default": "0"
+      },
+      {
+        "name": "timeout_count",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 0,
+        "server_default": "0"
+      },
+      {
+        "name": "empty_count",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 0,
+        "server_default": "0"
+      },
+      {
+        "name": "total_duration_ms",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 0,
+        "server_default": "0"
+      },
+      {
+        "name": "total_result_count",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 0,
+        "server_default": "0"
+      },
+      {
+        "name": "last_search_at",
+        "kind": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "last_error",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      }
+    ],
+    "primary_key": [
+      "provider_name"
+    ],
+    "unique": [],
+    "indexes": []
+  },
+  {
+    "name": "metadata_sources",
+    "columns": [
+      {
+        "name": "provider_name",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "is_enabled",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": true
+      },
+      {
+        "name": "is_aux_search_enabled",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": true
+      },
+      {
+        "name": "display_order",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 0
+      },
+      {
+        "name": "use_proxy",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": true
+      },
+      {
+        "name": "is_failover_enabled",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": false
+      },
+      {
+        "name": "log_raw_responses",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": false
+      }
+    ],
+    "primary_key": [
+      "provider_name"
+    ],
+    "unique": [],
+    "indexes": []
+  },
+  {
+    "name": "anime_metadata",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "anime_id",
+        "kind": "bigint",
+        "nullable": false,
+        "reference": "anime.id",
+        "on_delete": "CASCADE"
+      },
+      {
+        "name": "tmdb_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "tmdb_episode_group_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "imdb_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "tvdb_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "douban_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "bangumi_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "media_server_type",
+        "kind": "string",
+        "nullable": true,
+        "length": 50
+      },
+      {
+        "name": "media_server_series_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "media_server_season_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "trakt_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "air_weekday",
+        "kind": "integer",
+        "nullable": true
+      },
+      {
+        "name": "air_time",
+        "kind": "string",
+        "nullable": true,
+        "length": 10
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [
+      [
+        "anime_id"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "config",
+    "columns": [
+      {
+        "name": "config_key",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "config_value",
+        "kind": "text",
+        "nullable": false,
+        "medium": true
+      },
+      {
+        "name": "description",
+        "kind": "text",
+        "nullable": true,
+        "medium": false
+      }
+    ],
+    "primary_key": [
+      "config_key"
+    ],
+    "unique": [],
+    "indexes": []
+  },
+  {
+    "name": "cache_data",
+    "columns": [
+      {
+        "name": "cache_provider",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "cache_key",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "cache_value",
+        "kind": "text",
+        "nullable": false,
+        "medium": true
+      },
+      {
+        "name": "expires_at",
+        "kind": "datetime",
+        "nullable": false
+      }
+    ],
+    "primary_key": [
+      "cache_key"
+    ],
+    "unique": [],
+    "indexes": [
+      {
+        "name": "ix_cache_data_expires_at",
+        "columns": [
+          "expires_at"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "bangumi_data_index",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "bangumi_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 32
+      },
+      {
+        "name": "title_main",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "titles_all",
+        "kind": "text",
+        "nullable": true,
+        "medium": true
+      },
+      {
+        "name": "title_zh",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "title_en",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "type",
+        "kind": "string",
+        "nullable": true,
+        "length": 32
+      },
+      {
+        "name": "begin_year",
+        "kind": "integer",
+        "nullable": true
+      },
+      {
+        "name": "lang",
+        "kind": "string",
+        "nullable": true,
+        "length": 16
+      },
+      {
+        "name": "official_site",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "begin_date",
+        "kind": "string",
+        "nullable": true,
+        "length": 40
+      },
+      {
+        "name": "end_date",
+        "kind": "string",
+        "nullable": true,
+        "length": 40
+      },
+      {
+        "name": "broadcast",
+        "kind": "string",
+        "nullable": true,
+        "length": 100
+      },
+      {
+        "name": "comment",
+        "kind": "text",
+        "nullable": true,
+        "medium": false
+      },
+      {
+        "name": "sites",
+        "kind": "text",
+        "nullable": true,
+        "medium": false
+      },
+      {
+        "name": "updated_at",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [],
+    "indexes": [
+      {
+        "name": "ix_bangumi_data_index_bangumi_id",
+        "columns": [
+          "bangumi_id"
+        ]
+      },
+      {
+        "name": "ix_bangumi_data_index_title_main",
+        "columns": [
+          "title_main"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "api_tokens",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "integer",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "name",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "token",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "is_enabled",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": true
+      },
+      {
+        "name": "created_at",
+        "kind": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "expires_at",
+        "kind": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "daily_call_limit",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 500,
+        "server_default": "500"
+      },
+      {
+        "name": "daily_call_count",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 0,
+        "server_default": "0"
+      },
+      {
+        "name": "last_call_at",
+        "kind": "datetime",
+        "nullable": true
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [
+      [
+        "token"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "token_access_logs",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "token_id",
+        "kind": "integer",
+        "nullable": false
+      },
+      {
+        "name": "ip_address",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "user_agent",
+        "kind": "text",
+        "nullable": true,
+        "medium": false
+      },
+      {
+        "name": "access_time",
+        "kind": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "path",
+        "kind": "string",
+        "nullable": true,
+        "length": 512
+      },
+      {
+        "name": "method",
+        "kind": "string",
+        "nullable": true,
+        "length": 10
+      },
+      {
+        "name": "request_headers",
+        "kind": "text",
+        "nullable": true,
+        "medium": false
+      },
+      {
+        "name": "request_body",
+        "kind": "text",
+        "nullable": true,
+        "medium": false
+      },
+      {
+        "name": "response_headers",
+        "kind": "text",
+        "nullable": true,
+        "medium": false
+      },
+      {
+        "name": "response_body",
+        "kind": "text",
+        "nullable": true,
+        "medium": false
+      },
+      {
+        "name": "status_code",
+        "kind": "integer",
+        "nullable": true
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [],
+    "indexes": [
+      {
+        "name": "idx_token_id_time",
+        "columns": [
+          "token_id",
+          "access_time"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ua_rules",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "integer",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "ua_string",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "created_at",
+        "kind": "datetime",
+        "nullable": false
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [
+      [
+        "ua_string"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "bangumi_auth",
+    "columns": [
+      {
+        "name": "user_id",
+        "kind": "bigint",
+        "nullable": false
+      },
+      {
+        "name": "bangumi_user_id",
+        "kind": "integer",
+        "nullable": true
+      },
+      {
+        "name": "nickname",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "username",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "sign",
+        "kind": "text",
+        "nullable": true,
+        "medium": false
+      },
+      {
+        "name": "avatar_url",
+        "kind": "string",
+        "nullable": true,
+        "length": 512
+      },
+      {
+        "name": "access_token",
+        "kind": "text",
+        "nullable": false,
+        "medium": false
+      },
+      {
+        "name": "refresh_token",
+        "kind": "text",
+        "nullable": true,
+        "medium": false
+      },
+      {
+        "name": "expires_at",
+        "kind": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "redirect_uri",
+        "kind": "string",
+        "nullable": true,
+        "length": 512
+      },
+      {
+        "name": "authorized_at",
+        "kind": "datetime",
+        "nullable": true
+      }
+    ],
+    "primary_key": [
+      "user_id"
+    ],
+    "unique": [],
+    "indexes": []
+  },
+  {
+    "name": "oauth_states",
+    "columns": [
+      {
+        "name": "state_key",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "user_id",
+        "kind": "bigint",
+        "nullable": false
+      },
+      {
+        "name": "expires_at",
+        "kind": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "provider",
+        "kind": "string",
+        "nullable": true,
+        "length": 50,
+        "has_default": true,
+        "default": "bangumi"
+      }
+    ],
+    "primary_key": [
+      "state_key"
+    ],
+    "unique": [],
+    "indexes": [
+      {
+        "name": "ix_oauth_states_expires_at",
+        "columns": [
+          "expires_at"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "oauth_credentials",
+    "columns": [
+      {
+        "name": "user_id",
+        "kind": "bigint",
+        "nullable": false
+      },
+      {
+        "name": "provider",
+        "kind": "string",
+        "nullable": false,
+        "length": 50
+      },
+      {
+        "name": "provider_user_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "provider_username",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "access_token",
+        "kind": "text",
+        "nullable": false,
+        "medium": false
+      },
+      {
+        "name": "refresh_token",
+        "kind": "text",
+        "nullable": true,
+        "medium": false
+      },
+      {
+        "name": "expires_at",
+        "kind": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "authorized_at",
+        "kind": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "extra_data",
+        "kind": "text",
+        "nullable": true,
+        "medium": false
+      }
+    ],
+    "primary_key": [
+      "user_id",
+      "provider"
+    ],
+    "unique": [],
+    "indexes": []
+  },
+  {
+    "name": "anime_aliases",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "anime_id",
+        "kind": "bigint",
+        "nullable": false,
+        "reference": "anime.id",
+        "on_delete": "CASCADE"
+      },
+      {
+        "name": "name_en",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "name_jp",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "name_romaji",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "alias_cn_1",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "alias_cn_2",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "alias_cn_3",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "alias_locked",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": false,
+        "server_default": "0"
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [
+      [
+        "anime_id"
+      ]
+    ],
+    "indexes": []
+  },
+  {
+    "name": "tmdb_episode_mapping",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "tmdb_tv_id",
+        "kind": "integer",
+        "nullable": false
+      },
+      {
+        "name": "tmdb_episode_group_id",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "tmdb_episode_id",
+        "kind": "integer",
+        "nullable": false
+      },
+      {
+        "name": "tmdb_season_number",
+        "kind": "integer",
+        "nullable": false
+      },
+      {
+        "name": "tmdb_episode_number",
+        "kind": "integer",
+        "nullable": false
+      },
+      {
+        "name": "custom_season_number",
+        "kind": "integer",
+        "nullable": false
+      },
+      {
+        "name": "custom_episode_number",
+        "kind": "integer",
+        "nullable": false
+      },
+      {
+        "name": "absolute_episode_number",
+        "kind": "integer",
+        "nullable": false
+      },
+      {
+        "name": "episode_name",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [
+      [
+        "tmdb_episode_group_id",
+        "tmdb_episode_id"
+      ]
+    ],
+    "indexes": [
+      {
+        "name": "idx_custom_season_episode",
+        "columns": [
+          "tmdb_tv_id",
+          "tmdb_episode_group_id",
+          "custom_season_number",
+          "custom_episode_number"
+        ]
+      },
+      {
+        "name": "idx_absolute_episode",
+        "columns": [
+          "tmdb_tv_id",
+          "tmdb_episode_group_id",
+          "absolute_episode_number"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "scheduled_tasks",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "name",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "job_type",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "cron_expression",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "is_enabled",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": true
+      },
+      {
+        "name": "task_config",
+        "kind": "text",
+        "nullable": true,
+        "medium": false,
+        "has_default": true,
+        "default": "{}"
+      },
+      {
+        "name": "last_run_at",
+        "kind": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "next_run_at",
+        "kind": "datetime",
+        "nullable": true
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [],
+    "indexes": []
+  },
+  {
+    "name": "webhook_tasks",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "reception_time",
+        "kind": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "execute_time",
+        "kind": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "webhook_source",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "status",
+        "kind": "string",
+        "nullable": false,
+        "length": 500,
+        "has_default": true,
+        "default": "pending"
+      },
+      {
+        "name": "payload",
+        "kind": "text",
+        "nullable": false,
+        "medium": true
+      },
+      {
+        "name": "unique_key",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "task_title",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [
+      [
+        "unique_key"
+      ]
+    ],
+    "indexes": [
+      {
+        "name": "ix_webhook_tasks_reception_time",
+        "columns": [
+          "reception_time"
+        ]
+      },
+      {
+        "name": "ix_webhook_tasks_execute_time",
+        "columns": [
+          "execute_time"
+        ]
+      },
+      {
+        "name": "ix_webhook_tasks_status",
+        "columns": [
+          "status"
+        ]
+      },
+      {
+        "name": "idx_status_execute_time",
+        "columns": [
+          "status",
+          "execute_time"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "task_history",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "scheduled_task_id",
+        "kind": "string",
+        "nullable": true,
+        "reference": "scheduled_tasks.id",
+        "on_delete": "SET NULL",
+        "length": 500
+      },
+      {
+        "name": "title",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "status",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "progress",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 0
+      },
+      {
+        "name": "description",
+        "kind": "text",
+        "nullable": true,
+        "medium": true
+      },
+      {
+        "name": "created_at",
+        "kind": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "updated_at",
+        "kind": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "finished_at",
+        "kind": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "unique_key",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "queue_type",
+        "kind": "string",
+        "nullable": false,
+        "length": 500,
+        "has_default": true,
+        "default": "download",
+        "server_default": "download"
+      },
+      {
+        "name": "task_type",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "task_parameters",
+        "kind": "text",
+        "nullable": true,
+        "medium": true
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [],
+    "indexes": [
+      {
+        "name": "ix_task_history_scheduled_task_id",
+        "columns": [
+          "scheduled_task_id"
+        ]
+      },
+      {
+        "name": "ix_task_history_unique_key",
+        "columns": [
+          "unique_key"
+        ]
+      },
+      {
+        "name": "idx_task_history_created_at",
+        "columns": [
+          "created_at"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "task_state_cache",
+    "columns": [
+      {
+        "name": "task_id",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "task_type",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "task_parameters",
+        "kind": "text",
+        "nullable": false,
+        "medium": true
+      },
+      {
+        "name": "created_at",
+        "kind": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "updated_at",
+        "kind": "datetime",
+        "nullable": false
+      }
+    ],
+    "primary_key": [
+      "task_id"
+    ],
+    "unique": [],
+    "indexes": [
+      {
+        "name": "idx_task_type",
+        "columns": [
+          "task_type"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "external_api_logs",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "access_time",
+        "kind": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "ip_address",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "endpoint",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "status_code",
+        "kind": "integer",
+        "nullable": false
+      },
+      {
+        "name": "message",
+        "kind": "text",
+        "nullable": true,
+        "medium": true
+      },
+      {
+        "name": "request_headers",
+        "kind": "text",
+        "nullable": true,
+        "medium": true
+      },
+      {
+        "name": "request_body",
+        "kind": "text",
+        "nullable": true,
+        "medium": true
+      },
+      {
+        "name": "response_headers",
+        "kind": "text",
+        "nullable": true,
+        "medium": true
+      },
+      {
+        "name": "response_body",
+        "kind": "text",
+        "nullable": true,
+        "medium": true
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [],
+    "indexes": []
+  },
+  {
+    "name": "rate_limit_state",
+    "columns": [
+      {
+        "name": "provider_name",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "request_count",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 0
+      },
+      {
+        "name": "last_reset_time",
+        "kind": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "checksum",
+        "kind": "string",
+        "nullable": true,
+        "length": 500,
+        "has_default": true,
+        "default": null
+      }
+    ],
+    "primary_key": [
+      "provider_name"
+    ],
+    "unique": [],
+    "indexes": []
+  },
+  {
+    "name": "title_recognition",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "integer",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "content",
+        "kind": "text",
+        "nullable": false,
+        "medium": true
+      },
+      {
+        "name": "created_at",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true
+      },
+      {
+        "name": "updated_at",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true,
+        "now_update": true
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [],
+    "indexes": []
+  },
+  {
+    "name": "media_servers",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "name",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "provider_name",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "url",
+        "kind": "string",
+        "nullable": false,
+        "length": 512
+      },
+      {
+        "name": "api_token",
+        "kind": "string",
+        "nullable": false,
+        "length": 512
+      },
+      {
+        "name": "is_enabled",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": true
+      },
+      {
+        "name": "selected_libraries",
+        "kind": "text",
+        "nullable": true,
+        "medium": false
+      },
+      {
+        "name": "filter_rules",
+        "kind": "text",
+        "nullable": true,
+        "medium": false
+      },
+      {
+        "name": "created_at",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true
+      },
+      {
+        "name": "updated_at",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true,
+        "now_update": true
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [],
+    "indexes": []
+  },
+  {
+    "name": "media_items",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "server_id",
+        "kind": "bigint",
+        "nullable": false,
+        "reference": "media_servers.id",
+        "on_delete": "CASCADE"
+      },
+      {
+        "name": "media_id",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "library_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "series_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "season_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "episode_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "title",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "media_type",
+        "kind": "string",
+        "nullable": false,
+        "enum": [
+          "movie",
+          "tv_series"
+        ],
+        "length": 9
+      },
+      {
+        "name": "season",
+        "kind": "integer",
+        "nullable": true
+      },
+      {
+        "name": "episode",
+        "kind": "integer",
+        "nullable": true
+      },
+      {
+        "name": "year",
+        "kind": "integer",
+        "nullable": true
+      },
+      {
+        "name": "tmdb_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "tvdb_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "imdb_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "poster_url",
+        "kind": "string",
+        "nullable": true,
+        "length": 1024
+      },
+      {
+        "name": "is_imported",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": false
+      },
+      {
+        "name": "created_at",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true
+      },
+      {
+        "name": "updated_at",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true,
+        "now_update": true
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [
+      [
+        "server_id",
+        "media_id"
+      ]
+    ],
+    "indexes": [
+      {
+        "name": "idx_media_type",
+        "columns": [
+          "media_type"
+        ]
+      },
+      {
+        "name": "idx_is_imported",
+        "columns": [
+          "is_imported"
+        ]
+      },
+      {
+        "name": "idx_server_id",
+        "columns": [
+          "server_id"
+        ]
+      },
+      {
+        "name": "idx_media_items_created_at",
+        "columns": [
+          "created_at"
+        ]
+      },
+      {
+        "name": "idx_server_type",
+        "columns": [
+          "server_id",
+          "media_type"
+        ]
+      },
+      {
+        "name": "idx_server_type_title",
+        "columns": [
+          "server_id",
+          "media_type",
+          "title"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "local_danmaku_items",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "file_path",
+        "kind": "string",
+        "nullable": false,
+        "length": 1024
+      },
+      {
+        "name": "title",
+        "kind": "string",
+        "nullable": false,
+        "length": 512
+      },
+      {
+        "name": "media_type",
+        "kind": "string",
+        "nullable": false,
+        "enum": [
+          "movie",
+          "tv_series"
+        ],
+        "length": 9
+      },
+      {
+        "name": "season",
+        "kind": "integer",
+        "nullable": true
+      },
+      {
+        "name": "episode",
+        "kind": "integer",
+        "nullable": true
+      },
+      {
+        "name": "year",
+        "kind": "integer",
+        "nullable": true
+      },
+      {
+        "name": "tmdb_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "tvdb_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "imdb_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "poster_url",
+        "kind": "string",
+        "nullable": true,
+        "length": 1024
+      },
+      {
+        "name": "nfo_path",
+        "kind": "string",
+        "nullable": true,
+        "length": 1024
+      },
+      {
+        "name": "is_imported",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": false
+      },
+      {
+        "name": "created_at",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true
+      },
+      {
+        "name": "updated_at",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true,
+        "now_update": true
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [],
+    "indexes": [
+      {
+        "name": "idx_local_file_path",
+        "columns": [
+          "file_path"
+        ],
+        "mysql_length": 255
+      },
+      {
+        "name": "idx_local_media_type",
+        "columns": [
+          "media_type"
+        ]
+      },
+      {
+        "name": "idx_local_is_imported",
+        "columns": [
+          "is_imported"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ai_metrics_log",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "timestamp",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true
+      },
+      {
+        "name": "method",
+        "kind": "string",
+        "nullable": false,
+        "length": 100
+      },
+      {
+        "name": "success",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": true
+      },
+      {
+        "name": "duration_ms",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 0
+      },
+      {
+        "name": "tokens_used",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 0
+      },
+      {
+        "name": "model",
+        "kind": "string",
+        "nullable": false,
+        "length": 100
+      },
+      {
+        "name": "error",
+        "kind": "text",
+        "nullable": true,
+        "medium": false
+      },
+      {
+        "name": "cache_hit",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": false
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [],
+    "indexes": [
+      {
+        "name": "ix_ai_metrics_log_timestamp",
+        "columns": [
+          "timestamp"
+        ]
+      },
+      {
+        "name": "idx_ai_metrics_timestamp",
+        "columns": [
+          "timestamp"
+        ]
+      },
+      {
+        "name": "idx_ai_metrics_method",
+        "columns": [
+          "method"
+        ]
+      },
+      {
+        "name": "idx_ai_metrics_success",
+        "columns": [
+          "success"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "notification_channels",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "name",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "channel_type",
+        "kind": "string",
+        "nullable": false,
+        "length": 100
+      },
+      {
+        "name": "is_enabled",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": true
+      },
+      {
+        "name": "use_proxy",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": false
+      },
+      {
+        "name": "config",
+        "kind": "text",
+        "nullable": true,
+        "medium": false,
+        "has_default": true,
+        "default": "{}"
+      },
+      {
+        "name": "events_config",
+        "kind": "text",
+        "nullable": true,
+        "medium": false,
+        "has_default": true,
+        "default": "{}"
+      },
+      {
+        "name": "created_at",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true
+      },
+      {
+        "name": "updated_at",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true,
+        "now_update": true
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [],
+    "indexes": []
+  },
+  {
+    "name": "external_calendar_item",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "provider",
+        "kind": "string",
+        "nullable": false,
+        "length": 50
+      },
+      {
+        "name": "external_id",
+        "kind": "string",
+        "nullable": false,
+        "length": 100
+      },
+      {
+        "name": "anime_title",
+        "kind": "string",
+        "nullable": false,
+        "length": 500
+      },
+      {
+        "name": "title_zh",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "anime_type",
+        "kind": "string",
+        "nullable": false,
+        "length": 20,
+        "has_default": true,
+        "default": "tv_series"
+      },
+      {
+        "name": "season",
+        "kind": "integer",
+        "nullable": true
+      },
+      {
+        "name": "year",
+        "kind": "integer",
+        "nullable": true
+      },
+      {
+        "name": "air_weekday",
+        "kind": "integer",
+        "nullable": true
+      },
+      {
+        "name": "air_time",
+        "kind": "string",
+        "nullable": true,
+        "length": 10
+      },
+      {
+        "name": "air_date",
+        "kind": "string",
+        "nullable": true,
+        "length": 10
+      },
+      {
+        "name": "episode_count",
+        "kind": "integer",
+        "nullable": true
+      },
+      {
+        "name": "latest_episode_index",
+        "kind": "integer",
+        "nullable": true
+      },
+      {
+        "name": "image_url",
+        "kind": "string",
+        "nullable": true,
+        "length": 512
+      },
+      {
+        "name": "rating",
+        "kind": "decimal",
+        "nullable": true,
+        "precision": 3,
+        "scale": 1
+      },
+      {
+        "name": "bangumi_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 100
+      },
+      {
+        "name": "trakt_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 100
+      },
+      {
+        "name": "tmdb_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 100
+      },
+      {
+        "name": "imdb_id",
+        "kind": "string",
+        "nullable": true,
+        "length": 100
+      },
+      {
+        "name": "local_anime_id",
+        "kind": "bigint",
+        "nullable": true
+      },
+      {
+        "name": "local_source_id",
+        "kind": "bigint",
+        "nullable": true
+      },
+      {
+        "name": "platform_watch_status",
+        "kind": "string",
+        "nullable": true,
+        "length": 20
+      },
+      {
+        "name": "platform_watched_episodes",
+        "kind": "integer",
+        "nullable": true
+      },
+      {
+        "name": "platform_rating",
+        "kind": "decimal",
+        "nullable": true,
+        "precision": 3,
+        "scale": 1
+      },
+      {
+        "name": "extra_data",
+        "kind": "text",
+        "nullable": true,
+        "medium": false
+      },
+      {
+        "name": "fetched_at",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true
+      },
+      {
+        "name": "updated_at",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true,
+        "now_update": true
+      },
+      {
+        "name": "is_subscribed",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": false
+      },
+      {
+        "name": "subscription_status",
+        "kind": "string",
+        "nullable": true,
+        "length": 20
+      },
+      {
+        "name": "subscription_failure_count",
+        "kind": "integer",
+        "nullable": false,
+        "has_default": true,
+        "default": 0
+      },
+      {
+        "name": "subscription_last_attempt_at",
+        "kind": "datetime",
+        "nullable": true
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [
+      [
+        "provider",
+        "external_id"
+      ]
+    ],
+    "indexes": [
+      {
+        "name": "ix_external_calendar_item_bangumi_id",
+        "columns": [
+          "bangumi_id"
+        ]
+      },
+      {
+        "name": "ix_external_calendar_item_trakt_id",
+        "columns": [
+          "trakt_id"
+        ]
+      },
+      {
+        "name": "ix_external_calendar_item_tmdb_id",
+        "columns": [
+          "tmdb_id"
+        ]
+      },
+      {
+        "name": "ix_external_calendar_item_local_anime_id",
+        "columns": [
+          "local_anime_id"
+        ]
+      },
+      {
+        "name": "ix_external_calendar_item_local_source_id",
+        "columns": [
+          "local_source_id"
+        ]
+      },
+      {
+        "name": "ix_external_calendar_item_platform_watch_status",
+        "columns": [
+          "platform_watch_status"
+        ]
+      },
+      {
+        "name": "idx_external_provider_weekday",
+        "columns": [
+          "provider",
+          "air_weekday"
+        ]
+      },
+      {
+        "name": "idx_external_fetched_at",
+        "columns": [
+          "fetched_at"
+        ]
+      },
+      {
+        "name": "idx_external_subscription_status",
+        "columns": [
+          "is_subscribed",
+          "subscription_status"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "task_perf_events",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "flow_type",
+        "kind": "string",
+        "nullable": false,
+        "length": 100
+      },
+      {
+        "name": "correlation_id",
+        "kind": "string",
+        "nullable": false,
+        "length": 200
+      },
+      {
+        "name": "step_name",
+        "kind": "string",
+        "nullable": false,
+        "length": 200
+      },
+      {
+        "name": "duration_ms",
+        "kind": "decimal",
+        "nullable": false,
+        "precision": 12,
+        "scale": 2
+      },
+      {
+        "name": "success",
+        "kind": "bool",
+        "nullable": false,
+        "has_default": true,
+        "default": true
+      },
+      {
+        "name": "details",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "total_duration_ms",
+        "kind": "decimal",
+        "nullable": true,
+        "precision": 12,
+        "scale": 2
+      },
+      {
+        "name": "created_at",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [],
+    "indexes": [
+      {
+        "name": "ix_task_perf_events_flow_type",
+        "columns": [
+          "flow_type"
+        ]
+      },
+      {
+        "name": "ix_task_perf_events_correlation_id",
+        "columns": [
+          "correlation_id"
+        ]
+      },
+      {
+        "name": "ix_task_perf_events_created_at",
+        "columns": [
+          "created_at"
+        ]
+      },
+      {
+        "name": "idx_perf_flow_created",
+        "columns": [
+          "flow_type",
+          "created_at"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "subscription_candidate_item",
+    "columns": [
+      {
+        "name": "id",
+        "kind": "bigint",
+        "nullable": false,
+        "auto": true
+      },
+      {
+        "name": "parent_id",
+        "kind": "bigint",
+        "nullable": false,
+        "reference": "external_calendar_item.id",
+        "on_delete": "CASCADE"
+      },
+      {
+        "name": "provider",
+        "kind": "string",
+        "nullable": false,
+        "length": 50
+      },
+      {
+        "name": "external_id",
+        "kind": "string",
+        "nullable": false,
+        "length": 255
+      },
+      {
+        "name": "title",
+        "kind": "string",
+        "nullable": true,
+        "length": 500
+      },
+      {
+        "name": "extra_data",
+        "kind": "text",
+        "nullable": true,
+        "medium": false
+      },
+      {
+        "name": "created_at",
+        "kind": "datetime",
+        "nullable": false,
+        "now_default": true
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "unique": [
+      [
+        "parent_id",
+        "external_id"
+      ]
+    ],
+    "indexes": [
+      {
+        "name": "idx_candidate_parent",
+        "columns": [
+          "parent_id"
+        ]
+      }
+    ]
+  }
+]

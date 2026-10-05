@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AniDan · 首次安装</title>
+<style>body{font:16px/1.6 system-ui,sans-serif;background:#f4f5f8;color:#202434;margin:0;padding:24px}main{max-width:660px;margin:24px auto;background:white;border-radius:16px;padding:32px;box-shadow:0 8px 32px #2024340a}h1{margin:0}p{color:#666}label{display:block;margin:14px 0}input,select,button{font:inherit;box-sizing:border-box;width:100%;padding:10px;border:1px solid #cdd2df;border-radius:8px}button{background:#5264cd;color:white;border:0;cursor:pointer;margin-top:20px}button:disabled{opacity:.6}.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}small{color:#666}#message{white-space:pre-wrap;color:#a12626}[hidden]{display:none!important}@media(max-width:500px){main{padding:20px}.row{grid-template-columns:1fr}}</style></head>
+<body><main><h1>AniDan</h1><p>首次安装 · 配置数据库后开始使用</p><form id="setup">
+<label>一次性安装码<input name="token" required autocomplete="off"><small>运行 docker compose logs anidan 查看。</small></label>
+<label>安装方式<select name="mode"><option value="new">新建安装</option><option value="legacy">直接接入 Misaka 旧库</option></select></label>
+<section id="legacy" hidden><p>接入会继续读写原数据库，保留账号、令牌及所有表数据。请先停止原版服务并备份数据库和完整 config 目录。</p>
+<label>原版配置文件（可选）<input name="legacyConfig" placeholder="/app/config/config.yml"><small>主机留空时使用此文件的数据库连接；原版环境变量覆盖值需手动填写。</small></label>
+<label>原版 config 目录<input name="legacyDataDir" value="/app/config" required><small>需在 Compose 中挂载完整目录，且容器用户可读写。</small></label>
+<label>原版 JWT 密钥<input name="jwtSecret" type="password" autocomplete="new-password"><small>配置文件已有实际密钥时可留空。</small></label>
+<label>JWT 算法<select name="jwtAlgorithm"><option value="">使用配置文件或默认 HS256</option><option>HS256</option><option>HS384</option><option>HS512</option></select></label></section>
+<label>数据库类型<select name="driver"><option value="sqlite">SQLite（无需额外数据库）</option><option value="mysql">MySQL / MariaDB</option><option value="postgres">PostgreSQL</option></select></label>
+<section id="remote" hidden><div class="row"><label>主机<input name="host" placeholder="host.docker.internal"></label><label>端口<input name="port" type="number" min="1" max="65535" placeholder="3306"></label></div>
+<div class="row"><label>用户名<input name="user" autocomplete="off"></label><label>密码<input name="password" type="password" autocomplete="new-password"></label></div>
+<label>数据库名<input name="database"></label><label>TLS<select name="tls"><option value="disable">关闭（本机 / 受信任容器网络）</option><option value="require">启用 TLS</option><option value="verify-full">验证证书与主机名（PostgreSQL）</option></select></label>
+<small>容器中的 localhost 指向容器自身。数据库在宿主机上时使用 host.docker.internal，并允许容器网络连接；其他容器可使用同一网络中的服务名。</small></section>
+<section id="admin"><div class="row"><label>管理员账号<input name="adminUsername" value="admin" autocomplete="username"></label><label>管理员密码<input name="adminPassword" type="password" minlength="8" required autocomplete="new-password"></label></div></section>
+<label>时区<input name="timezone" placeholder="使用配置文件或默认 Asia/Shanghai"></label>
+<button id="submit">保存并启动</button><p id="message" role="status" aria-live="polite"></p></form></main>
+<script>
+const form=document.querySelector('#setup'), message=document.querySelector('#message'), button=document.querySelector('#submit');
+function update(){const old=form.elements.mode.value==='legacy',driver=form.elements.driver;driver.options[0].disabled=old;if(old&&driver.value==='sqlite')driver.value='mysql';document.querySelector('#legacy').hidden=!old;document.querySelector('#admin').hidden=old;document.querySelectorAll('#legacy input,#legacy select').forEach(el=>el.disabled=!old);document.querySelectorAll('#admin input').forEach(el=>el.disabled=old);document.querySelector('#remote').hidden=driver.value==='sqlite';form.elements.adminPassword.required=!old;form.elements.port.placeholder=driver.value==='postgres'?'5432':'3306';form.elements.tls.options[2].disabled=driver.value!=='postgres';if(driver.value==='mysql'&&form.elements.tls.value==='verify-full')form.elements.tls.value='require'}
+form.elements.mode.addEventListener('change',update);form.elements.driver.addEventListener('change',update);update();
+form.addEventListener('submit',async e=>{e.preventDefault();button.disabled=true;message.textContent='正在检查数据库和文件，请稍候…';const v=Object.fromEntries(new FormData(form));v.legacy=v.mode==='legacy';v.dataDir=v.legacy?v.legacyDataDir:'';v.port=Number(v.port)||0;delete v.mode;delete v.legacyDataDir;if(!v.legacy){v.legacyConfig='';v.jwtSecret='';v.jwtAlgorithm=''}try{const r=await fetch('/api/setup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(v)});if(!r.ok)throw new Error(await r.text());message.textContent='安装完成，正在启动。即将进入登录页面…';setTimeout(()=>location.replace('/'),2500)}catch(err){message.textContent=err.message;button.disabled=false}});
+</script></body></html>

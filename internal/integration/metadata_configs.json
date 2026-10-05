@@ -1,0 +1,126 @@
+{
+  "bangumi": {
+    "provider_name": "bangumi",
+    "config_keys": [
+      "bangumiClientId",
+      "bangumiClientSecret",
+      "bangumiToken",
+      "authMode",
+      "bangumiApiBaseUrl",
+      "bangumiImageBaseUrl",
+      "bangumiDataSyncEnabled",
+      "bangumiDataOfflineEnabled",
+      "bangumiDataSyncCron",
+      "bangumiDataUrl"
+    ],
+    "bool_config_keys": [
+      "bangumiDataSyncEnabled",
+      "bangumiDataOfflineEnabled"
+    ],
+    "is_search_supplement_source": true,
+    "configurable_fields": {
+      "searchSupplementEnabled": [
+        "启用搜索补充",
+        "boolean",
+        "启用后，当弹幕源搜索无结果时，将通过 bangumi-data 离线库的平台直链为其补充搜索结果"
+      ]
+    }
+  },
+  "tvdb": {
+    "provider_name": "tvdb",
+    "config_keys": [
+      "tvdbApiKey"
+    ]
+  },
+  "anibt": {
+    "provider_name": "anibt",
+    "config_keys": [
+      "anibtApiBaseUrl",
+      "anibtImageBaseUrl",
+      "anibtRssUrl"
+    ],
+    "bool_config_keys": [],
+    "configurable_fields": {
+      "anibtApiBaseUrl": {
+        "label": "API 地址",
+        "type": "url",
+        "tooltip": "AniBT API 服务地址，通常无需修改",
+        "placeholder": "https://anibt.net",
+        "default": "https://anibt.net"
+      },
+      "anibtImageBaseUrl": {
+        "label": "图片地址",
+        "type": "url",
+        "tooltip": "可选；留空时使用 API 地址解析相对图片路径",
+        "placeholder": "https://anibt.net",
+        "default": ""
+      },
+      "anibtRssUrl": {
+        "label": "私有 RSS 地址",
+        "type": "password",
+        "tooltip": "粘贴 AniBT 生成的带鉴权密钥 RSS 地址；保存后自动同步其中的追番订阅。留空则取消订阅。",
+        "placeholder": "https://anibt.net/rss/...",
+        "default": ""
+      }
+    }
+  },
+  "360": {
+    "provider_name": "360",
+    "is_failover_source": true,
+    "has_force_aux_search_toggle": true,
+    "supports_episode_urls": true,
+    "is_search_supplement_source": true,
+    "configurable_fields": {
+      "searchSupplementEnabled": [
+        "启用搜索补充",
+        "boolean",
+        "启用后，当弹幕源搜索无结果时，将通过360影视为其补充搜索结果"
+      ]
+    }
+  },
+  "tmdb": {
+    "provider_name": "tmdb",
+    "config_keys": [
+      "tmdbApiKey",
+      "tmdbApiBaseUrl",
+      "tmdbImageBaseUrl"
+    ]
+  },
+  "trakt": {
+    "provider_name": "trakt",
+    "config_keys": [],
+    "configurable_fields": {}
+  },
+  "imdb": {
+    "provider_name": "imdb",
+    "config_keys": [
+      "imdbUseApi",
+      "imdbEnableFallback"
+    ],
+    "bool_config_keys": [
+      "imdbUseApi",
+      "imdbEnableFallback"
+    ],
+    "configurable_fields": {
+      "imdbUseApi": [
+        "使用第三方API",
+        "boolean",
+        "使用第三方API (api.imdbapi.dev) 而不是官方网站HTML解析"
+      ],
+      "imdbEnableFallback": [
+        "启用兜底",
+        "boolean",
+        "当主方式失败时,自动尝试另一种方式"
+      ]
+    }
+  },
+  "douban": {
+    "provider_name": "douban",
+    "config_keys": [
+      "doubanCookie"
+    ],
+    "has_force_aux_search_toggle": true,
+    "is_failover_source": true,
+    "supports_episode_urls": true
+  }
+}

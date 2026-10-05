@@ -1,0 +1,6009 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "AniDan External Control API",
+    "version": "0.1.0-dev"
+  },
+  "paths": {
+    "/api/control/danmaku/{episodeId}": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取弹幕",
+        "description": "获取指定分集的所有弹幕，返回dandanplay兼容格式。用于弹幕调整，不受输出限制控制。",
+        "operationId": "get_danmaku_api_control_danmaku__episodeId__get",
+        "parameters": [
+          {
+            "name": "episodeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Episodeid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      },
+      "post": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "覆盖弹幕",
+        "description": "提交一个后台任务，用请求体中提供的弹幕列表完全覆盖指定分集的现有弹幕。",
+        "operationId": "overwrite_danmaku_api_control_danmaku__episodeId__post",
+        "parameters": [
+          {
+            "name": "episodeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Episodeid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DanmakuUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlTaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/episode-groups": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "列出所有剧集组",
+        "description": "### 功能\n列出数据库中所有已保存的剧集组摘要信息。\n支持通过 `tmdbTvId` 查询参数过滤特定作品的剧集组。",
+        "operationId": "list_episode_groups_api_control_episode_groups_get",
+        "parameters": [
+          {
+            "name": "tmdbTvId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按 TMDB TV ID 过滤",
+              "title": "Tmdbtvid"
+            },
+            "description": "按 TMDB TV ID 过滤"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EpisodeGroupSummary"
+                  },
+                  "title": "Response List Episode Groups Api Control Episode Groups Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      },
+      "post": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "创建剧集组",
+        "description": "### 功能\n创建一个新的剧集组映射。\n### 规则\n- 不传 `groupId`：自动生成本地剧集组，ID 为 `local-{tmdbTvId}`。\n- 传入 `groupId`：必须为 TMDB 原生剧集组ID，不能以 `local-` 开头。\n- 如果该 `groupId` 已存在，返回 409 冲突。\n- `animeId`（可选）：传入条目ID，创建后自动将该条目与剧集组绑定（设置 `anime_metadata.tmdbEpisodeGroupId`）。",
+        "operationId": "create_episode_group_api_control_episode_groups_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EpisodeGroupCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/episode-groups/{groupId}": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "查看剧集组详情",
+        "description": "### 功能\n获取指定剧集组的完整分组结构，包括每个分组下的所有分集映射信息。\n支持 TMDB 原生剧集组ID 和本地剧集组ID（`local-{tmdbTvId}`）。",
+        "operationId": "get_episode_group_api_control_episode_groups__groupId__get",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Groupid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      },
+      "put": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "编辑剧集组",
+        "description": "### 功能\n全量更新指定剧集组的映射数据（先删后插）。\n支持 TMDB 原生剧集组和本地剧集组。",
+        "operationId": "update_episode_group_api_control_episode_groups__groupId__put",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Groupid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EpisodeGroupUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      },
+      "delete": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "删除剧集组",
+        "description": "### 功能\n删除指定剧集组的所有映射记录。\n支持 TMDB 原生剧集组和本地剧集组。",
+        "operationId": "delete_episode_group_api_control_episode_groups__groupId__delete",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Groupid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/episode-groups/{groupId}/associate": {
+      "put": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "关联剧集组与条目",
+        "description": "### 功能\n将指定条目与剧集组进行关联，设置 `anime_metadata.tmdbEpisodeGroupId`。\n如需解关联，请使用 DELETE `/episode-groups/{groupId}/associate/{animeId}`。",
+        "operationId": "associate_episode_group_api_control_episode_groups__groupId__associate_put",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Groupid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EpisodeGroupAssociateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/episode-groups/{groupId}/associate/{animeId}": {
+      "delete": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "解关联剧集组与条目",
+        "description": "### 功能\n解除指定条目与剧集组的关联，将 `anime_metadata.tmdbEpisodeGroupId` 置空。",
+        "operationId": "disassociate_episode_group_api_control_episode_groups__groupId__associate__animeId__delete",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Groupid"
+            }
+          },
+          {
+            "name": "animeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Animeid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/import/auto": {
+      "post": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "全自动搜索并导入",
+        "description": "### 功能\n这是一个强大的\"全自动搜索并导入\"接口，它能根据不同的ID类型（如TMDB ID、Bangumi ID等）或关键词进行搜索，并根据一系列智能规则自动选择最佳的数据源进行弹幕导入。\n\n### 工作流程\n1.  **元数据获取**: 如果使用ID搜索（如`tmdb`, `bangumi`），接口会首先从对应的元数据网站获取作品的官方标题和别名。\n2.  **媒体库检查**: 检查此作品是否已存在于您的弹幕库中。\n    -   如果存在且有精确标记的源，则优先使用该源。\n    -   如果存在但无精确标记，则使用已有关联源中优先级最高的那个。\n3.  **全网搜索**: 如果媒体库中不存在，则使用获取到的标题和别名在所有已启用的弹幕源中进行搜索。\n4.  **智能选择**: 从搜索结果中，根据您在\"搜索源\"页面设置的优先级，选择最佳匹配项。\n5.  **任务提交**: 为最终选择的源创建一个后台导入任务。\n\n### 参数使用说明\n-   `searchType`:\n    -   `keyword`: 按关键词搜索。此时 `mediaType` 字段**必填**。\n    -   `tmdb`, `tvdb`, `douban`, `imdb`, `bangumi`: 按对应平台的ID进行精确搜索。\n-   `season` & `episode`:\n    -   **电视剧/番剧**:\n        -   提供 `season`，不提供 `episode`: 导入 `season` 指定的整季。\n        -   提供 `season` 和 `episode`: 导入指定的集数。支持单集(如'1')或多集(如'1,3,5,7,9,11-13')格式。\n    -   **电影**:\n        -   `season` 和 `episode` 参数会被忽略。\n-   `mediaType`:\n    -   当 `searchType` 为 `keyword` 时，此字段为**必填项**。\n    -   当 `searchType` 为其他ID类型时，此字段为可选项。如果留空，系统将根据 `season` 参数是否存在来自动推断媒体类型（有 `season` 则为电视剧，否则为电影）。",
+        "operationId": "auto_import_api_control_import_auto_post",
+        "parameters": [
+          {
+            "name": "searchType",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/AutoImportSearchType",
+              "description": "搜索类型。可选值: 'keyword', 'tmdb', 'tvdb', 'douban', 'imdb', 'bangumi'。"
+            },
+            "description": "搜索类型。可选值: 'keyword', 'tmdb', 'tvdb', 'douban', 'imdb', 'bangumi'。"
+          },
+          {
+            "name": "searchTerm",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "搜索内容。根据 searchType 的不同，这里应填入关键词或对应的平台ID。",
+              "title": "Searchterm"
+            },
+            "description": "搜索内容。根据 searchType 的不同，这里应填入关键词或对应的平台ID。"
+          },
+          {
+            "name": "season",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "季度号。如果未提供，将自动推断或默认为1。",
+              "title": "Season"
+            },
+            "description": "季度号。如果未提供，将自动推断或默认为1。"
+          },
+          {
+            "name": "episode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "集数。支持单集(如'1')或多集(如'1,3,5,7,9,11-13')格式。如果提供，将只导入指定集数（此时必须提供季度）。",
+              "title": "Episode"
+            },
+            "description": "集数。支持单集(如'1')或多集(如'1,3,5,7,9,11-13')格式。如果提供，将只导入指定集数（此时必须提供季度）。"
+          },
+          {
+            "name": "mediaType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/AutoImportMediaType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "媒体类型。当 searchType 为 'keyword' 时必填。如果留空，将根据有无 'season' 参数自动推断。",
+              "title": "Mediatype"
+            },
+            "description": "媒体类型。当 searchType 为 'keyword' 时必填。如果留空，将根据有无 'season' 参数自动推断。"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlTaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/search": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "搜索媒体",
+        "description": "### 功能\n根据关键词从所有启用的弹幕源搜索媒体。这是执行导入操作的第一步。\n\n### 工作流程\n1.  接收关键词，以及可选的季度和集数。\n2.  并发地在所有已启用的弹幕源上进行搜索。\n3.  返回一个包含`searchId`和结果列表的响应。`searchId`是本次搜索的唯一标识，用于后续的导入操作。\n4.  搜索结果会在服务器上缓存10分钟。\n\n### 参数使用说明\n-   `keyword`: 必需的搜索关键词。\n-   `season`: (可选) 如果提供，搜索将更倾向于或只返回电视剧类型的结果。\n-   `episode`: (可选) 必须与`season`一同提供，用于更精确的单集匹配。",
+        "operationId": "search_media_api_control_search_get",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Keyword"
+            }
+          },
+          {
+            "name": "season",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "要搜索的季度 (可选)",
+              "title": "Season"
+            },
+            "description": "要搜索的季度 (可选)"
+          },
+          {
+            "name": "episode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "要搜索的集数 (可选)",
+              "title": "Episode"
+            },
+            "description": "要搜索的集数 (可选)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlSearchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/import/direct": {
+      "post": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "直接导入搜索结果",
+        "description": "### 功能\n在执行`/search`后，使用返回的`searchId`和您选择的结果索引（`resultIndex`）来直接导入弹幕。\n\n### 工作流程\n这是一个简单、直接的导入方式。它会为选定的媒体创建一个后台导入任务。您也可以在请求中附加元数据ID（如`tmdbId`）来覆盖或补充作品信息。",
+        "operationId": "direct_import_api_control_import_direct_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ControlDirectImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlTaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/episodes": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取搜索结果的分集列表",
+        "description": "### 功能\n在执行`/search`后，获取指定搜索结果的完整分集列表。\n\n### 工作流程\n此接口主要用于\"编辑后导入\"的场景。您可以先获取原始的分集列表，在您的客户端进行修改（例如，删除预告、调整顺序），然后再通过`/import/edited`接口提交修改后的列表进行导入。",
+        "operationId": "get_episodes_api_control_episodes_get",
+        "parameters": [
+          {
+            "name": "searchId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "来自/search接口的searchId",
+              "title": "Searchid"
+            },
+            "description": "来自/search接口的searchId"
+          },
+          {
+            "name": "result_index",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "要获取分集的结果的索引",
+              "title": "Result Index"
+            },
+            "description": "要获取分集的结果的索引"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProviderEpisodeInfo"
+                  },
+                  "title": "Response Get Episodes Api Control Episodes Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/import/edited": {
+      "post": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "导入编辑后的分集列表",
+        "description": "### 功能\n导入一个经过用户编辑和调整的分集列表。\n\n### 工作流程\n这是最灵活的导入方式。它允许您完全控制要导入的分集，包括标题、顺序等。您可以在请求中覆盖作品标题和附加元数据ID。",
+        "operationId": "edited_import_api_control_import_edited_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ControlEditedImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlTaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/import/xml": {
+      "post": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "从XML/文本导入弹幕",
+        "description": "### 功能\n为一个已存在的数据源，导入指定集数的弹幕（通过XML或纯文本内容）。\n### 工作流程\n1.  您需要提供一个已存在于系统中的 `sourceId`。\n2.  提供要导入的 `episodeIndex` (集数) 和弹幕 `content`。\n3.  系统会为该数据源创建一个后台任务，将内容解析并导入到指定分集。\n\n此接口非常适合用于对已有的数据源进行单集补全或更新。",
+        "operationId": "xml_import_api_control_import_xml_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ControlXmlImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlTaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/import/url": {
+      "post": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "从URL导入",
+        "description": "### 功能\n为一个已存在的数据源，导入指定集数的弹幕。\n### 工作流程\n1.  您需要提供一个已存在于系统中的 `sourceId`。\n2.  提供要导入的 `episodeIndex` (集数) 和包含弹幕的视频页面 `url`。\n3.  系统会为该数据源创建一个后台任务，精确地获取并导入指定集数的弹幕。\n\n此接口非常适合用于对已有的数据源进行单集补全或更新。",
+        "operationId": "url_import_api_control_import_url_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ControlUrlImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlTaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/metadata/search": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "查找元数据信息",
+        "description": "### 功能\n从指定的元数据源（如TMDB, Bangumi）中查找媒体信息。\n\n### 工作流程\n1.  提供 `provider` 来指定要查询的源。\n2.  提供 `keyword` 或 `id` 中的一个来进行搜索。\n3.  `mediaType` 为可选参数。TMDB 不传时默认搜索全部类型(multi)，其他源可忽略。\n\n### 返回\n返回一个包含元数据详情的列表。如果通过ID查找且成功，列表中将只有一个元素。",
+        "operationId": "search_metadata_source_api_control_metadata_search_get",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "要查询的元数据源，例如: 'tmdb', 'bangumi'。",
+              "title": "Provider"
+            },
+            "description": "要查询的元数据源，例如: 'tmdb', 'bangumi'。"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按关键词搜索。'keyword' 和 'id' 必须提供一个。",
+              "title": "Keyword"
+            },
+            "description": "按关键词搜索。'keyword' 和 'id' 必须提供一个。"
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按ID精确查找。'keyword' 和 'id' 必须提供一个。",
+              "title": "Id"
+            },
+            "description": "按ID精确查找。'keyword' 和 'id' 必须提供一个。"
+          },
+          {
+            "name": "mediaType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/AutoImportMediaType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "媒体类型。可选值: 'tv_series', 'movie'。",
+              "title": "Mediatype"
+            },
+            "description": "媒体类型。可选值: 'tv_series', 'movie'。"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlMetadataSearchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/library": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取媒体库列表",
+        "description": "获取当前弹幕库中所有已收录的作品列表。",
+        "operationId": "get_library_api_control_library_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LibraryAnimeInfo"
+                  },
+                  "type": "array",
+                  "title": "Response Get Library Api Control Library Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/library/search": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "搜索媒体库",
+        "description": "根据关键词搜索弹幕库中已收录的作品。",
+        "operationId": "search_library_api_control_library_search_get",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "搜索关键词",
+              "title": "Keyword"
+            },
+            "description": "搜索关键词"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LibraryAnimeInfo"
+                  },
+                  "title": "Response Search Library Api Control Library Search Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/library/anime": {
+      "post": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "自定义创建影视条目",
+        "description": "### 功能\n在数据库中手动创建一个新的影视作品条目。\n### 工作流程\n1.  接收作品的标题、类型、季度等基本信息。\n2.  （可选）接收TMDB、Bangumi等元数据ID和其他别名。\n3.  在数据库中创建对应的 `anime`, `anime_metadata`, `anime_aliases` 记录。\n4.  返回创建状态和新作品ID。",
+        "operationId": "create_anime_entry_api_control_library_anime_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ControlAnimeCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/library/anime/{animeId}": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取作品详情",
+        "description": "获取弹幕库中单个作品的完整详细信息，包括所有元数据ID和别名。",
+        "operationId": "get_anime_details_api_control_library_anime__animeId__get",
+        "parameters": [
+          {
+            "name": "animeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Animeid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlAnimeDetailsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      },
+      "put": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "编辑作品信息",
+        "description": "更新弹幕库中单个作品的详细信息。",
+        "operationId": "edit_anime_api_control_library_anime__animeId__put",
+        "parameters": [
+          {
+            "name": "animeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Animeid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnimeDetailUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      },
+      "delete": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "删除作品",
+        "description": "提交一个后台任务，以删除弹幕库中的一个作品及其所有关联的数据源、分集和弹幕。",
+        "operationId": "delete_anime_api_control_library_anime__animeId__delete",
+        "parameters": [
+          {
+            "name": "animeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Animeid"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlTaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/library/anime/{animeId}/sources": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取作品的所有数据源",
+        "description": "获取指定作品已关联的所有弹幕源列表。",
+        "operationId": "get_anime_sources_api_control_library_anime__animeId__sources_get",
+        "parameters": [
+          {
+            "name": "animeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Animeid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SourceInfo"
+                  },
+                  "title": "Response Get Anime Sources Api Control Library Anime  Animeid  Sources Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      },
+      "post": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "为作品添加数据源",
+        "description": "### 功能\n为一个已存在的作品手动关联一个新的数据源。\n\n### 工作流程\n1.  提供一个已存在于弹幕库中的 `animeId`。\n2.  在请求体中提供 `providerName` 和 `mediaId`。\n3.  系统会将此数据源关联到指定的作品。\n\n### 使用场景\n-   **添加自定义源**: 您可以为任何作品添加一个 `custom` 类型的源，以便后续通过 `/import/xml` 接口为其上传弹幕文件。\n    -   `providerName`: \"custom\"\n    -   `mediaId`: 任意唯一的字符串，例如 `custom_123`。\n-   **手动关联刮削源**: 如果自动搜索未能找到正确的结果，您可以通过此接口手动将一个已知的 `providerName` 和 `mediaId` 关联到作品上。",
+        "operationId": "add_source_api_control_library_anime__animeId__sources_post",
+        "parameters": [
+          {
+            "name": "animeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Animeid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/library/source/{sourceId}": {
+      "delete": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "删除数据源",
+        "description": "提交一个后台任务，以删除一个已关联的数据源及其所有分集和弹幕。",
+        "operationId": "delete_source_api_control_library_source__sourceId__delete",
+        "parameters": [
+          {
+            "name": "sourceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sourceid"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlTaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/library/source/{sourceId}/favorite": {
+      "put": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "精确标记数据源",
+        "description": "切换数据源的\"精确标记\"状态。一个作品只能有一个精确标记的源，它将在自动匹配时被优先使用。",
+        "operationId": "favorite_source_api_control_library_source__sourceId__favorite_put",
+        "parameters": [
+          {
+            "name": "sourceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sourceid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/library/source/{sourceId}/episodes": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取源的分集列表",
+        "description": "获取指定数据源下所有已收录的分集列表。",
+        "operationId": "get_source_episodes_api_control_library_source__sourceId__episodes_get",
+        "parameters": [
+          {
+            "name": "sourceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sourceid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EpisodeDetail"
+                  },
+                  "title": "Response Get Source Episodes Api Control Library Source  Sourceid  Episodes Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/library/episode/{episodeid}": {
+      "put": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "编辑分集信息",
+        "description": "更新单个分集的标题、集数和官方链接。",
+        "operationId": "edit_episode_api_control_library_episode__episodeid__put",
+        "parameters": [
+          {
+            "name": "episodeid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Episodeid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EpisodeInfoUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/library/episode/{episodeId}/refresh": {
+      "post": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "刷新分集弹幕",
+        "description": "提交一个后台任务，为单个分集重新从其源网站获取最新的弹幕。",
+        "operationId": "refresh_episode_api_control_library_episode__episodeId__refresh_post",
+        "parameters": [
+          {
+            "name": "episodeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Episodeid"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlTaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/library/episode/{episodeId}": {
+      "delete": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "删除分集",
+        "description": "提交一个后台任务，以删除单个分集及其所有弹幕。",
+        "operationId": "delete_episode_api_control_library_episode__episodeId__delete",
+        "parameters": [
+          {
+            "name": "episodeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Episodeid"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlTaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/logs": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取实时日志",
+        "description": "获取存储在内存中的最新日志条目（实时日志）。\n返回最近的日志行列表，按时间倒序排列。",
+        "operationId": "get_realtime_logs_api_control_logs_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array",
+                  "title": "Response Get Realtime Logs Api Control Logs Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/logs/files": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取历史日志文件列表",
+        "description": "列出所有可用的历史日志文件（包括轮转文件）。\n\n### 日志文件说明\n- **app.log**: 主应用日志\n- **bot_raw.log**: Bot原始交互日志\n- **webhook_raw.log**: Webhook原始请求日志\n- **ai_responses.log**: AI响应日志\n- **metadata_responses.log**: 元数据响应日志\n- **scraper_responses.log**: 搜索源响应日志",
+        "operationId": "get_log_file_list_api_control_logs_files_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/logs/files/{filename}": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "读取指定历史日志文件",
+        "description": "读取指定日志文件，支持后端关键词过滤和分页加载。\n\n返回 {\"lines\": [...], \"hasMore\": bool, \"total\": int}",
+        "operationId": "get_log_file_content_api_control_logs_files__filename__get",
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Filename"
+            }
+          },
+          {
+            "name": "tail",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "每批返回行数，默认200",
+              "default": 200,
+              "title": "Tail"
+            },
+            "description": "每批返回行数，默认200"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "关键词过滤（大小写不敏感），空字符串不过滤",
+              "default": "",
+              "title": "Keyword"
+            },
+            "description": "关键词过滤（大小写不敏感），空字符串不过滤"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "已加载条数，用于加载更多",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "已加载条数，用于加载更多"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/rate-limit/status": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取流控状态",
+        "description": "获取所有流控规则的当前状态，包括全局和各源的配额使用情况。\n\n## 使用方式\n\n### 普通JSON响应 (默认)\n- 请求: `GET /api/control/rate-limit/status`\n- 响应: 单次JSON对象\n- Content-Type: `application/json`\n\n### SSE流式推送\n- 请求: `GET /api/control/rate-limit/status?stream=true`\n- 响应: `text/event-stream`，每秒推送一次状态更新\n- 事件格式: `data: {JSON对象}`\n- 客户端断开连接时自动停止推送\n\n## 参数\n- **stream**: 是否使用SSE流式推送。默认False返回JSON，True返回text/event-stream\n\n## 响应格式\n两种模式返回的数据结构完全一致，只是传输方式不同:\n- 普通模式: 一次性返回完整JSON\n- SSE模式: 每秒推送一次相同格式的JSON数据",
+        "operationId": "get_rate_limit_status_api_control_rate_limit_status_get",
+        "parameters": [
+          {
+            "name": "stream",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "是否使用SSE流式推送(每秒更新)",
+              "default": false,
+              "title": "Stream"
+            },
+            "description": "是否使用SSE流式推送(每秒更新)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/scheduler/tasks": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取所有定时任务",
+        "description": "获取所有已配置的定时任务及其当前状态。",
+        "operationId": "list_scheduled_tasks_api_control_scheduler_tasks_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "title": "Response List Scheduled Tasks Api Control Scheduler Tasks Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/scheduler/{taskId}/last_result": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取定时任务的最近一次运行结果",
+        "description": "获取指定定时任务的最近一次运行结果。\n如果任务从未运行过，将返回 404 Not Found。",
+        "operationId": "get_scheduled_task_last_result_api_control_scheduler__taskId__last_result_get",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "定时任务的ID",
+              "title": "Taskid"
+            },
+            "description": "定时任务的ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskInfo"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/scrapers": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取所有弹幕源配置",
+        "description": "获取所有**已加载**的弹幕源配置信息，包括启用状态、代理开关、分集黑名单、日志开关和搜索超时。\n只返回实际加载成功的源，不包含数据库中残留的无效记录和 'custom' 虚拟源。",
+        "operationId": "get_all_scraper_configs_api_control_scrapers_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ScraperConfigItem"
+                  },
+                  "type": "array",
+                  "title": "Response Get All Scraper Configs Api Control Scrapers Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/scrapers/{provider}": {
+      "put": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "更新单个弹幕源配置",
+        "description": "更新指定弹幕源的配置。只更新请求体中提供的字段，未提供的字段保持不变。\n\n### 可更新的配置项\n- **useProxy**: 是否启用代理\n- **episodeBlacklistRegex**: 分集标题正则黑名单\n- **logRawResponses**: 是否记录原始响应到日志文件\n- **searchTimeout**: 搜索超时时间(秒), 范围 1-120",
+        "operationId": "update_scraper_config_api_control_scrapers__provider__put",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Provider"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScraperConfigUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/settings/danmaku-output": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取弹幕输出设置",
+        "description": "获取全局的弹幕输出设置，如输出上限和是否合并输出。",
+        "operationId": "get_danmaku_output_settings_api_control_settings_danmaku_output_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DanmakuOutputSettings"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      },
+      "put": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "更新弹幕输出设置",
+        "description": "更新全局的弹幕输出设置，包括输出上限和合并输出选项。",
+        "operationId": "update_danmaku_output_settings_api_control_settings_danmaku_output_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DanmakuOutputSettings"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/config": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取可配置的参数列表或帮助信息",
+        "description": "获取所有可通过外部API管理的配置项及其当前值。\n\n参数:\n- type: 可选参数\n  - 不提供或为空: 返回所有配置项及其当前值\n  - \"help\": 返回所有可用的配置项键名列表",
+        "operationId": "get_allowed_configs_api_control_config_get",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "请求类型，使用 'help' 获取可用配置项列表",
+              "title": "Type"
+            },
+            "description": "请求类型，使用 'help' 获取可用配置项列表"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ConfigResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/HelpResponse"
+                    }
+                  ],
+                  "title": "Response Get Allowed Configs Api Control Config Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      },
+      "put": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "更新指定配置项",
+        "description": "更新指定的配置项。\n只允许更新白名单中定义的配置项。",
+        "operationId": "update_config_api_control_config_put",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfigUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/tasks": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取后台任务列表",
+        "description": "获取后台任务的列表和状态，支持按标题搜索和按状态过滤。",
+        "operationId": "get_tasks_api_control_tasks_get",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按标题搜索",
+              "title": "Search"
+            },
+            "description": "按标题搜索"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "按状态过滤: all, in_progress, completed",
+              "default": "all",
+              "title": "Status"
+            },
+            "description": "按状态过滤: all, in_progress, completed"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskInfo"
+                  },
+                  "title": "Response Get Tasks Api Control Tasks Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/tasks/{taskId}": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取单个任务状态",
+        "description": "获取单个后台任务的详细状态。",
+        "operationId": "get_task_status_api_control_tasks__taskId__get",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Taskid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskInfo"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      },
+      "delete": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "删除一个历史任务",
+        "description": "### 功能\n删除一个后台任务。\n- **排队中**: 从队列中移除。\n- **运行中/已暂停**: 尝试中止任务，然后删除。\n- **已完成/失败**: 从历史记录中删除。\n- **force=true**: 强制删除，跳过中止逻辑直接删除历史记录。",
+        "operationId": "delete_task_api_control_tasks__taskId__delete",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Taskid"
+            }
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Force"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/tasks/{taskId}/abort": {
+      "post": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "中止正在运行的任务",
+        "description": "尝试中止一个当前正在运行或已暂停的任务。\n- force=false: 正常中止，向任务发送取消信号\n- force=true: 强制中止，直接将任务标记为失败状态",
+        "operationId": "abort_task_api_control_tasks__taskId__abort_post",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Taskid"
+            }
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Force"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/tasks/{taskId}/pause": {
+      "post": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "暂停正在运行的任务",
+        "description": "暂停一个当前正在运行的任务。任务将在下一次进度更新时暂停。",
+        "operationId": "pause_task_api_control_tasks__taskId__pause_post",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Taskid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/tasks/{taskId}/resume": {
+      "post": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "恢复已暂停的任务",
+        "description": "恢复一个已暂停的任务。",
+        "operationId": "resume_task_api_control_tasks__taskId__resume_post",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Taskid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/tasks/{taskId}/execution": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取调度任务触发的执行任务ID和状态",
+        "description": "在调用 `/import/auto` 等接口后，使用返回的调度任务ID来查询其触发的、\n真正执行下载导入工作的任务ID和状态。\n\n返回字段说明:\n- `schedulerTaskId`: 调度任务ID (输入的taskId)\n- `executionTaskId`: 执行任务ID,如果调度任务尚未触发执行任务则为null\n- `status`: 任务状态,可能的值:\n    - `运行中`: 任务正在执行\n    - `已完成`: 任务已成功完成\n    - `失败`: 任务执行失败\n    - `已取消`: 任务已被取消\n    - `等待中`: 任务等待执行\n    - `已暂停`: 任务已暂停\n    - `null`: 调度任务尚未完成,无法获取状态\n\n您可以轮询此接口，直到获取到 `executionTaskId` 和最终状态。",
+        "operationId": "get_execution_task_id_api_control_tasks__taskId__execution_get",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Taskid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionTaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/tokens": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取所有Token",
+        "description": "获取所有为dandanplay客户端创建的API Token。",
+        "operationId": "get_tokens_api_control_tokens_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ApiTokenInfo"
+                  },
+                  "type": "array",
+                  "title": "Response Get Tokens Api Control Tokens Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      },
+      "post": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "创建Token",
+        "description": "创建一个新的API Token。\n\n### 请求体说明\n- `name`: (string, 必需) Token的名称，用于在UI中识别。\n- `validityPeriod`: (string, 必需) Token的有效期。\n    - 填入数字（如 \"30\", \"90\"）表示有效期为多少天。\n    - 填入 \"permanent\" 表示永久有效。",
+        "operationId": "create_token_api_control_tokens_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiTokenCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiTokenInfo"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/tokens/{tokenId}": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取单个Token详情",
+        "description": "获取单个API Token的详细信息。",
+        "operationId": "get_token_api_control_tokens__tokenId__get",
+        "parameters": [
+          {
+            "name": "tokenId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tokenid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiTokenInfo"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      },
+      "put": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "更新Token信息",
+        "description": "更新指定API Token的名称、每日调用上限和有效期。",
+        "operationId": "update_token_api_control_tokens__tokenId__put",
+        "parameters": [
+          {
+            "name": "tokenId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tokenid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ControlApiTokenUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      },
+      "delete": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "删除Token",
+        "description": "删除一个API Token。",
+        "operationId": "delete_token_api_control_tokens__tokenId__delete",
+        "parameters": [
+          {
+            "name": "tokenId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tokenid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/tokens/{tokenId}/logs": {
+      "get": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "获取Token访问日志",
+        "description": "获取单个API Token最近的访问日志。",
+        "operationId": "get_token_logs_api_control_tokens__tokenId__logs_get",
+        "parameters": [
+          {
+            "name": "tokenId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tokenid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TokenAccessLog"
+                  },
+                  "title": "Response Get Token Logs Api Control Tokens  Tokenid  Logs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/tokens/{tokenId}/toggle": {
+      "put": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "启用/禁用Token",
+        "description": "切换API Token的启用/禁用状态。",
+        "operationId": "toggle_token_api_control_tokens__tokenId__toggle_put",
+        "parameters": [
+          {
+            "name": "tokenId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tokenid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    },
+    "/api/control/tokens/{tokenId}/reset": {
+      "post": {
+        "tags": [
+          "External Control API"
+        ],
+        "summary": "重置Token调用次数",
+        "description": "将指定API Token的今日调用次数重置为0。",
+        "operationId": "reset_token_counter_api_control_tokens__tokenId__reset_post",
+        "parameters": [
+          {
+            "name": "tokenId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tokenid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyQuery": []
+          }
+        ],
+        "x-implementation-status": "contract reference; actual Go handler must exist; behavior requires tests"
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnimeDetailUpdate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Title",
+            "description": "新的影视名称"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "season": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Season",
+            "description": "新的季度"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year",
+            "description": "发行年份"
+          },
+          "episodeCount": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Episodecount",
+            "description": "新的集数"
+          },
+          "imageUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imageurl"
+          },
+          "tmdbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tmdbid"
+          },
+          "tmdbEpisodeGroupId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tmdbepisodegroupid"
+          },
+          "bangumiId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bangumiid"
+          },
+          "tvdbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tvdbid"
+          },
+          "doubanId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doubanid"
+          },
+          "imdbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imdbid"
+          },
+          "nameEn": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nameen"
+          },
+          "nameJp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Namejp"
+          },
+          "nameRomaji": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nameromaji"
+          },
+          "aliasCn1": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aliascn1"
+          },
+          "aliasCn2": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aliascn2"
+          },
+          "aliasCn3": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aliascn3"
+          },
+          "aliasLocked": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aliaslocked",
+            "description": "别名是否锁定"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "type",
+          "season"
+        ],
+        "title": "AnimeDetailUpdate",
+        "description": "用于更新番剧详细信息的模型"
+      },
+      "ApiTokenCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Name",
+            "description": "Token的描述性名称"
+          },
+          "validityPeriod": {
+            "type": "string",
+            "title": "Validityperiod",
+            "description": "有效期: permanent, 1d, 7d, 30d, 180d, 365d",
+            "default": "permanent"
+          },
+          "dailyCallLimit": {
+            "type": "integer",
+            "title": "Dailycalllimit",
+            "description": "每日调用次数限制, -1 表示无限",
+            "default": 500
+          },
+          "customToken": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customtoken",
+            "description": "自定义Token字符串，留空则自动生成"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "ApiTokenCreate"
+      },
+      "ApiTokenInfo": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "isEnabled": {
+            "type": "boolean",
+            "title": "Isenabled"
+          },
+          "expiresAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expiresat"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "dailyCallLimit": {
+            "type": "integer",
+            "title": "Dailycalllimit"
+          },
+          "dailyCallCount": {
+            "type": "integer",
+            "title": "Dailycallcount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "token",
+          "isEnabled",
+          "createdAt",
+          "dailyCallLimit",
+          "dailyCallCount"
+        ],
+        "title": "ApiTokenInfo"
+      },
+      "AutoImportMediaType": {
+        "type": "string",
+        "enum": [
+          "tv_series",
+          "movie"
+        ],
+        "title": "AutoImportMediaType",
+        "description": "自动导入媒体类型"
+      },
+      "AutoImportSearchType": {
+        "type": "string",
+        "enum": [
+          "keyword",
+          "tmdb",
+          "tvdb",
+          "douban",
+          "imdb",
+          "bangumi"
+        ],
+        "title": "AutoImportSearchType",
+        "description": "自动导入搜索类型"
+      },
+      "Comment": {
+        "properties": {
+          "cid": {
+            "type": "integer",
+            "title": "Cid",
+            "description": "弹幕ID (数据库主键)"
+          },
+          "p": {
+            "type": "string",
+            "title": "P",
+            "description": "弹幕参数: time,mode,color,source"
+          },
+          "m": {
+            "type": "string",
+            "title": "M",
+            "description": "弹幕内容"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cid",
+          "p",
+          "m"
+        ],
+        "title": "Comment"
+      },
+      "CommentResponse": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "title": "Count",
+            "description": "弹幕总数"
+          },
+          "comments": {
+            "items": {
+              "$ref": "#/components/schemas/Comment"
+            },
+            "type": "array",
+            "title": "Comments",
+            "description": "弹幕列表",
+            "default": []
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status",
+            "description": "任务状态: pending | completed | failed（同步模式为 null）"
+          },
+          "taskId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taskid",
+            "description": "异步任务ID（同步模式为 null）"
+          },
+          "episodeId": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Episodeid",
+            "description": "关联的分集ID（轮询接口返回，客户端用此ID调 /comment/{episodeId} 获取弹幕）"
+          },
+          "progress": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progress",
+            "description": "任务进度 0-100"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "任务描述/进度信息"
+          }
+        },
+        "type": "object",
+        "required": [
+          "count"
+        ],
+        "title": "CommentResponse"
+      },
+      "ConfigItem": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "value",
+          "type",
+          "description"
+        ],
+        "title": "ConfigItem"
+      },
+      "ConfigResponse": {
+        "properties": {
+          "configs": {
+            "items": {
+              "$ref": "#/components/schemas/ConfigItem"
+            },
+            "type": "array",
+            "title": "Configs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "configs"
+        ],
+        "title": "ConfigResponse"
+      },
+      "ConfigUpdateRequest": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "value"
+        ],
+        "title": "ConfigUpdateRequest"
+      },
+      "ControlActionResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "success"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "animeId": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Animeid"
+          },
+          "sourceId": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sourceid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "ControlActionResponse",
+        "description": "通用操作成功响应模型"
+      },
+      "ControlAnimeCreateRequest": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "作品主标题"
+          },
+          "type": {
+            "$ref": "#/components/schemas/AutoImportMediaType",
+            "description": "媒体类型"
+          },
+          "season": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Season",
+            "description": "季度号 (tv_series 类型必需)"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year",
+            "description": "年份"
+          },
+          "nameEn": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nameen",
+            "description": "英文标题"
+          },
+          "nameJp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Namejp",
+            "description": "日文标题"
+          },
+          "nameRomaji": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nameromaji",
+            "description": "罗马音标题"
+          },
+          "aliasCn1": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aliascn1",
+            "description": "中文别名1"
+          },
+          "aliasCn2": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aliascn2",
+            "description": "中文别名2"
+          },
+          "aliasCn3": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aliascn3",
+            "description": "中文别名3"
+          },
+          "tmdbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tmdbid"
+          },
+          "tvdbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tvdbid"
+          },
+          "bangumiId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bangumiid"
+          },
+          "imdbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imdbid"
+          },
+          "doubanId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doubanid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "type"
+        ],
+        "title": "ControlAnimeCreateRequest",
+        "description": "用于外部API自定义创建影视条目的请求模型"
+      },
+      "ControlAnimeDetailsResponse": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "season": {
+            "type": "integer",
+            "title": "Season"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "episodeCount": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Episodecount"
+          },
+          "localImagePath": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Localimagepath"
+          },
+          "imageUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imageurl"
+          },
+          "tmdbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tmdbid"
+          },
+          "tmdbEpisodeGroupId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tmdbepisodegroupid"
+          },
+          "bangumiId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bangumiid"
+          },
+          "tvdbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tvdbid"
+          },
+          "doubanId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doubanid"
+          },
+          "imdbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imdbid"
+          },
+          "nameEn": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nameen"
+          },
+          "nameJp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Namejp"
+          },
+          "nameRomaji": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nameromaji"
+          },
+          "aliasCn1": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aliascn1"
+          },
+          "aliasCn2": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aliascn2"
+          },
+          "aliasCn3": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aliascn3"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "type",
+          "season"
+        ],
+        "title": "ControlAnimeDetailsResponse",
+        "description": "用于外部API的番剧详情响应模型"
+      },
+      "ControlApiTokenUpdate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Name",
+            "description": "Token的描述性名称"
+          },
+          "dailyCallLimit": {
+            "type": "integer",
+            "title": "Dailycalllimit",
+            "description": "每日调用次数限制, -1 表示无限"
+          },
+          "validityPeriod": {
+            "type": "string",
+            "title": "Validityperiod",
+            "description": "新的有效期: 'permanent', 'custom', '30d' 等。'custom' 表示不改变当前有效期。",
+            "default": "custom"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "dailyCallLimit"
+        ],
+        "title": "ControlApiTokenUpdate"
+      },
+      "ControlDirectImportRequest": {
+        "properties": {
+          "searchId": {
+            "type": "string",
+            "title": "Searchid",
+            "description": "来自搜索响应的searchId"
+          },
+          "result_index": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Result Index",
+            "description": "要导入的结果的索引 (从0开始)"
+          },
+          "tmdbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tmdbid"
+          },
+          "tvdbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tvdbid"
+          },
+          "bangumiId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bangumiid"
+          },
+          "imdbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imdbid"
+          },
+          "doubanId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doubanid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "searchId",
+          "result_index"
+        ],
+        "title": "ControlDirectImportRequest",
+        "description": "直接导入请求模型"
+      },
+      "ControlEditedImportRequest": {
+        "properties": {
+          "searchId": {
+            "type": "string",
+            "title": "Searchid",
+            "description": "来自搜索响应的searchId"
+          },
+          "result_index": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Result Index",
+            "description": "要编辑的结果的索引 (从0开始)"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title",
+            "description": "覆盖原始标题"
+          },
+          "episodes": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderEpisodeInfo"
+            },
+            "type": "array",
+            "title": "Episodes",
+            "description": "编辑后的分集列表"
+          },
+          "tmdbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tmdbid"
+          },
+          "tvdbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tvdbid"
+          },
+          "bangumiId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bangumiid"
+          },
+          "imdbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imdbid"
+          },
+          "doubanId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doubanid"
+          },
+          "tmdbEpisodeGroupId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tmdbepisodegroupid",
+            "description": "强制指定TMDB剧集组ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "searchId",
+          "result_index",
+          "episodes"
+        ],
+        "title": "ControlEditedImportRequest",
+        "description": "编辑后导入请求模型"
+      },
+      "ControlMetadataSearchResponse": {
+        "properties": {
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/MetadataDetailsResponse"
+            },
+            "type": "array",
+            "title": "Results"
+          }
+        },
+        "type": "object",
+        "required": [
+          "results"
+        ],
+        "title": "ControlMetadataSearchResponse",
+        "description": "用于外部API的元数据搜索响应模型"
+      },
+      "ControlSearchResponse": {
+        "properties": {
+          "searchId": {
+            "type": "string",
+            "title": "Searchid",
+            "description": "本次搜索操作的唯一ID，用于后续操作"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/ControlSearchResultItem"
+            },
+            "type": "array",
+            "title": "Results",
+            "description": "搜索结果列表"
+          }
+        },
+        "type": "object",
+        "required": [
+          "searchId",
+          "results"
+        ],
+        "title": "ControlSearchResponse",
+        "description": "搜索响应模型"
+      },
+      "ControlSearchResultItem": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "title": "Provider",
+            "description": "数据源提供方, e.g., 'tencent', 'bilibili'"
+          },
+          "mediaId": {
+            "type": "string",
+            "title": "Mediaid",
+            "description": "该数据源中的媒体ID (e.g., tencent的cid)"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "节目名称"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "description": "节目类型, e.g., 'tv_series', 'movie'"
+          },
+          "season": {
+            "type": "integer",
+            "title": "Season",
+            "description": "季度, 默认为1",
+            "default": 1
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year",
+            "description": "发行年份"
+          },
+          "imageUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imageurl",
+            "description": "封面图片URL"
+          },
+          "episodeCount": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Episodecount",
+            "description": "总集数"
+          },
+          "currentEpisodeIndex": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currentepisodeindex",
+            "description": "如果搜索词指定了集数，则为当前集数"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url",
+            "description": "平台播放页面URL"
+          },
+          "supportsEpisodeUrls": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supportsepisodeurls",
+            "description": "该源是否支持获取分集URL (用于补充源功能)"
+          },
+          "supplementSource": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supplementsource",
+            "description": "搜索补充源名称 (如 '360')，非补充结果时为null"
+          },
+          "recognitionTitle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recognitiontitle",
+            "description": "识别词指定的入库正确名，前端用于展示识别词标签"
+          },
+          "sourceType": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sourcetype",
+            "description": "弹幕源原始媒体类型"
+          },
+          "typeSuggestion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Typesuggestion",
+            "description": "元数据建议的媒体类型"
+          },
+          "typeDecision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Typedecision",
+            "description": "类型判定状态: corrected/needs_confirmation"
+          },
+          "typeDecisionReason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Typedecisionreason",
+            "description": "类型判定依据"
+          },
+          "result_index": {
+            "type": "integer",
+            "title": "Result Index",
+            "description": "结果在列表中的顺序索引，从0开始"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "mediaId",
+          "title",
+          "type",
+          "result_index"
+        ],
+        "title": "ControlSearchResultItem",
+        "description": "搜索结果项，包含结果索引"
+      },
+      "ControlTaskResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "success"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "taskId": {
+            "type": "string",
+            "title": "Taskid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "taskId"
+        ],
+        "title": "ControlTaskResponse",
+        "description": "任务提交成功响应模型"
+      },
+      "ControlUrlImportRequest": {
+        "properties": {
+          "sourceId": {
+            "type": "integer",
+            "title": "Sourceid",
+            "description": "要导入到的目标数据源ID"
+          },
+          "episode_index": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Episode Index",
+            "description": "要导入的特定集数"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url",
+            "description": "包含弹幕的视频页面的URL"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title",
+            "description": "（可选）强制指定分集标题"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sourceId",
+          "episode_index",
+          "url"
+        ],
+        "title": "ControlUrlImportRequest",
+        "description": "用于外部API通过URL导入到指定源的请求模型"
+      },
+      "ControlXmlImportRequest": {
+        "properties": {
+          "sourceId": {
+            "type": "integer",
+            "title": "Sourceid",
+            "description": "要导入到的目标数据源ID"
+          },
+          "episode_index": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Episode Index",
+            "description": "要导入的特定集数"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content",
+            "description": "XML或纯文本格式的弹幕内容"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title",
+            "description": "（可选）强制指定分集标题"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sourceId",
+          "episode_index",
+          "content"
+        ],
+        "title": "ControlXmlImportRequest",
+        "description": "用于外部API通过XML/文本导入到指定源的请求模型"
+      },
+      "DanmakuOutputSettings": {
+        "properties": {
+          "limit_per_source": {
+            "type": "integer",
+            "title": "Limit Per Source"
+          },
+          "merge_output_enabled": {
+            "type": "boolean",
+            "title": "Merge Output Enabled"
+          }
+        },
+        "type": "object",
+        "required": [
+          "limit_per_source",
+          "merge_output_enabled"
+        ],
+        "title": "DanmakuOutputSettings",
+        "description": "弹幕输出设置模型"
+      },
+      "DanmakuUpdateRequest": {
+        "properties": {
+          "comments": {
+            "items": {
+              "$ref": "#/components/schemas/Comment"
+            },
+            "type": "array",
+            "title": "Comments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "comments"
+        ],
+        "title": "DanmakuUpdateRequest",
+        "description": "用于覆盖弹幕的请求体模型"
+      },
+      "EpisodeDetail": {
+        "properties": {
+          "episodeId": {
+            "type": "integer",
+            "title": "Episodeid"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "episodeIndex": {
+            "type": "integer",
+            "title": "Episodeindex"
+          },
+          "sourceUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sourceurl"
+          },
+          "fetchedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fetchedat"
+          },
+          "commentCount": {
+            "type": "integer",
+            "title": "Commentcount"
+          },
+          "danmakuFilePath": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Danmakufilepath"
+          }
+        },
+        "type": "object",
+        "required": [
+          "episodeId",
+          "title",
+          "episodeIndex",
+          "commentCount"
+        ],
+        "title": "EpisodeDetail"
+      },
+      "EpisodeGroupAssociateRequest": {
+        "properties": {
+          "animeId": {
+            "type": "integer",
+            "title": "Animeid",
+            "description": "要关联的条目ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "animeId"
+        ],
+        "title": "EpisodeGroupAssociateRequest",
+        "description": "关联/解关联剧集组与条目"
+      },
+      "EpisodeGroupCreateRequest": {
+        "properties": {
+          "tmdbTvId": {
+            "type": "integer",
+            "title": "Tmdbtvid",
+            "description": "TMDB TV ID"
+          },
+          "groupId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Groupid",
+            "description": "TMDB 原生剧集组ID。不传则自动生成本地剧集组 local-{tmdbTvId}"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "剧集组名称",
+            "default": ""
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/GroupInGroupRequest"
+            },
+            "type": "array",
+            "title": "Groups",
+            "description": "分组列表"
+          },
+          "animeId": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Animeid",
+            "description": "关联的条目ID，传入则创建后自动关联"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tmdbTvId",
+          "groups"
+        ],
+        "title": "EpisodeGroupCreateRequest",
+        "description": "创建剧集组请求"
+      },
+      "EpisodeGroupSummary": {
+        "properties": {
+          "groupId": {
+            "type": "string",
+            "title": "Groupid"
+          },
+          "tmdbTvId": {
+            "type": "integer",
+            "title": "Tmdbtvid"
+          },
+          "episodeCount": {
+            "type": "integer",
+            "title": "Episodecount"
+          },
+          "groupCount": {
+            "type": "integer",
+            "title": "Groupcount"
+          },
+          "isLocal": {
+            "type": "boolean",
+            "title": "Islocal"
+          },
+          "associatedAnimeIds": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Associatedanimeids",
+            "description": "关联了此剧集组的条目ID列表"
+          }
+        },
+        "type": "object",
+        "required": [
+          "groupId",
+          "tmdbTvId",
+          "episodeCount",
+          "groupCount",
+          "isLocal"
+        ],
+        "title": "EpisodeGroupSummary",
+        "description": "剧集组摘要"
+      },
+      "EpisodeGroupUpdateRequest": {
+        "properties": {
+          "tmdbTvId": {
+            "type": "integer",
+            "title": "Tmdbtvid",
+            "description": "TMDB TV ID"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "剧集组名称",
+            "default": ""
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/GroupInGroupRequest"
+            },
+            "type": "array",
+            "title": "Groups",
+            "description": "分组列表"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tmdbTvId",
+          "groups"
+        ],
+        "title": "EpisodeGroupUpdateRequest",
+        "description": "更新剧集组请求"
+      },
+      "EpisodeInGroupRequest": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "分集ID（TMDB episodeId 或合成ID）"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "分集名称",
+            "default": ""
+          },
+          "episodeNumber": {
+            "type": "integer",
+            "title": "Episodenumber",
+            "description": "TMDB 原始集数"
+          },
+          "seasonNumber": {
+            "type": "integer",
+            "title": "Seasonnumber",
+            "description": "TMDB 原始季数"
+          },
+          "order": {
+            "type": "integer",
+            "title": "Order",
+            "description": "在组内的排序",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "episodeNumber",
+          "seasonNumber"
+        ],
+        "title": "EpisodeInGroupRequest",
+        "description": "创建/更新剧集组时的单集信息"
+      },
+      "EpisodeInfoUpdate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Title",
+            "description": "新的分集标题"
+          },
+          "episodeIndex": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Episodeindex",
+            "description": "新的集数"
+          },
+          "sourceUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sourceurl",
+            "description": "新的官方链接"
+          },
+          "danmakuFilePath": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Danmakufilepath",
+            "description": "弹幕文件路径"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "episodeIndex"
+        ],
+        "title": "EpisodeInfoUpdate",
+        "description": "用于更新分集信息的模型"
+      },
+      "ExecutionTaskResponse": {
+        "properties": {
+          "schedulerTaskId": {
+            "type": "string",
+            "title": "Schedulertaskid"
+          },
+          "executionTaskId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Executiontaskid"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "schedulerTaskId"
+        ],
+        "title": "ExecutionTaskResponse"
+      },
+      "GroupInGroupRequest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "分组名称",
+            "default": ""
+          },
+          "order": {
+            "type": "integer",
+            "title": "Order",
+            "description": "分组排序"
+          },
+          "episodes": {
+            "items": {
+              "$ref": "#/components/schemas/EpisodeInGroupRequest"
+            },
+            "type": "array",
+            "title": "Episodes",
+            "description": "该组下的分集列表"
+          }
+        },
+        "type": "object",
+        "required": [
+          "order",
+          "episodes"
+        ],
+        "title": "GroupInGroupRequest",
+        "description": "创建/更新剧集组时的分组信息"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HelpResponse": {
+        "properties": {
+          "available_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Available Keys"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "available_keys",
+          "description"
+        ],
+        "title": "HelpResponse"
+      },
+      "LibraryAnimeInfo": {
+        "properties": {
+          "animeId": {
+            "type": "integer",
+            "title": "Animeid"
+          },
+          "localImagePath": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Localimagepath"
+          },
+          "imageUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imageurl"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "season": {
+            "type": "integer",
+            "title": "Season"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "episodeCount": {
+            "type": "integer",
+            "title": "Episodecount"
+          },
+          "sourceCount": {
+            "type": "integer",
+            "title": "Sourcecount"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "groupId": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Groupid"
+          },
+          "groupName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Groupname"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/LibrarySourceBrief"
+            },
+            "type": "array",
+            "title": "Sources",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "animeId",
+          "title",
+          "type",
+          "season",
+          "episodeCount",
+          "sourceCount",
+          "createdAt"
+        ],
+        "title": "LibraryAnimeInfo",
+        "description": "代表媒体库中的一个番剧条目。"
+      },
+      "LibrarySourceBrief": {
+        "properties": {
+          "sourceId": {
+            "type": "integer",
+            "title": "Sourceid"
+          },
+          "providerName": {
+            "type": "string",
+            "title": "Providername"
+          },
+          "isFavorited": {
+            "type": "boolean",
+            "title": "Isfavorited"
+          },
+          "incrementalRefreshEnabled": {
+            "type": "boolean",
+            "title": "Incrementalrefreshenabled"
+          },
+          "isFinished": {
+            "type": "boolean",
+            "title": "Isfinished",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "sourceId",
+          "providerName",
+          "isFavorited",
+          "incrementalRefreshEnabled"
+        ],
+        "title": "LibrarySourceBrief",
+        "description": "媒体库列表中的简化源信息，用于快速操作标记和追更。"
+      },
+      "MetadataDetailsResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Type"
+          },
+          "tmdbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tmdbid"
+          },
+          "imdbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imdbid"
+          },
+          "tvdbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tvdbid"
+          },
+          "doubanId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doubanid"
+          },
+          "bangumiId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bangumiid"
+          },
+          "nameEn": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nameen"
+          },
+          "nameJp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Namejp"
+          },
+          "nameRomaji": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nameromaji"
+          },
+          "aliasesCn": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Aliasescn",
+            "default": []
+          },
+          "aliasesJp": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Aliasesjp",
+            "default": []
+          },
+          "imageUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imageurl"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "supportsEpisodeUrls": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supportsepisodeurls",
+            "description": "该源是否支持获取分集URL (用于补充源功能)"
+          },
+          "seasons": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/TMDBSeasonInfo"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seasons",
+            "description": "TMDB TV系列的季度信息列表"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extra",
+            "description": "额外数据,用于存储原始搜索结果等信息"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider",
+            "description": "数据源提供方名称"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title"
+        ],
+        "title": "MetadataDetailsResponse",
+        "description": "所有元数据源详情接口的统一响应模型。"
+      },
+      "ProviderEpisodeInfo": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "title": "Provider",
+            "description": "数据源提供方"
+          },
+          "episodeId": {
+            "type": "string",
+            "title": "Episodeid",
+            "description": "该数据源中的分集ID (e.g., tencent的vid)"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "分集标题"
+          },
+          "episodeIndex": {
+            "type": "integer",
+            "title": "Episodeindex",
+            "description": "分集序号"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url",
+            "description": "分集原始URL"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "episodeId",
+          "title",
+          "episodeIndex"
+        ],
+        "title": "ProviderEpisodeInfo",
+        "description": "代表来自外部数据源的单个分集。"
+      },
+      "ScraperConfigItem": {
+        "properties": {
+          "providerName": {
+            "type": "string",
+            "title": "Providername",
+            "description": "弹幕源名称"
+          },
+          "isEnabled": {
+            "type": "boolean",
+            "title": "Isenabled",
+            "description": "是否启用"
+          },
+          "useProxy": {
+            "type": "boolean",
+            "title": "Useproxy",
+            "description": "是否启用代理"
+          },
+          "displayOrder": {
+            "type": "integer",
+            "title": "Displayorder",
+            "description": "显示顺序"
+          },
+          "episodeBlacklistRegex": {
+            "type": "string",
+            "title": "Episodeblacklistregex",
+            "description": "分集标题正则黑名单",
+            "default": ""
+          },
+          "logRawResponses": {
+            "type": "boolean",
+            "title": "Lograwresponses",
+            "description": "是否记录原始响应",
+            "default": false
+          },
+          "searchTimeout": {
+            "type": "integer",
+            "title": "Searchtimeout",
+            "description": "搜索超时时间(秒)",
+            "default": 15
+          }
+        },
+        "type": "object",
+        "required": [
+          "providerName",
+          "isEnabled",
+          "useProxy",
+          "displayOrder"
+        ],
+        "title": "ScraperConfigItem",
+        "description": "单个弹幕源的配置信息"
+      },
+      "ScraperConfigUpdate": {
+        "properties": {
+          "useProxy": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Useproxy",
+            "description": "是否启用代理"
+          },
+          "episodeBlacklistRegex": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Episodeblacklistregex",
+            "description": "分集标题正则黑名单"
+          },
+          "logRawResponses": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lograwresponses",
+            "description": "是否记录原始响应"
+          },
+          "searchTimeout": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 120.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Searchtimeout",
+            "description": "搜索超时时间(秒), 1-120"
+          }
+        },
+        "type": "object",
+        "title": "ScraperConfigUpdate",
+        "description": "更新单个弹幕源配置的请求体"
+      },
+      "SourceCreate": {
+        "properties": {
+          "providerName": {
+            "type": "string",
+            "title": "Providername",
+            "description": "数据源提供方名称"
+          },
+          "mediaId": {
+            "type": "string",
+            "title": "Mediaid",
+            "description": "在该数据源上的媒体ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "providerName",
+          "mediaId"
+        ],
+        "title": "SourceCreate"
+      },
+      "SourceInfo": {
+        "properties": {
+          "sourceId": {
+            "type": "integer",
+            "title": "Sourceid"
+          },
+          "providerName": {
+            "type": "string",
+            "title": "Providername"
+          },
+          "mediaId": {
+            "type": "string",
+            "title": "Mediaid"
+          },
+          "isFavorited": {
+            "type": "boolean",
+            "title": "Isfavorited"
+          },
+          "incrementalRefreshEnabled": {
+            "type": "boolean",
+            "title": "Incrementalrefreshenabled"
+          },
+          "isFinished": {
+            "type": "boolean",
+            "title": "Isfinished",
+            "default": false
+          },
+          "episodeCount": {
+            "type": "integer",
+            "title": "Episodecount"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sourceId",
+          "providerName",
+          "mediaId",
+          "isFavorited",
+          "incrementalRefreshEnabled",
+          "episodeCount",
+          "createdAt"
+        ],
+        "title": "SourceInfo",
+        "description": "代表一个已关联的数据源的详细信息。"
+      },
+      "TMDBSeasonInfo": {
+        "properties": {
+          "airDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Airdate"
+          },
+          "episodeCount": {
+            "type": "integer",
+            "title": "Episodecount"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "seasonNumber": {
+            "type": "integer",
+            "title": "Seasonnumber"
+          },
+          "posterPath": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posterpath"
+          },
+          "aliases": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aliases",
+            "description": "季度别名列表",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "episodeCount",
+          "id",
+          "name",
+          "seasonNumber"
+        ],
+        "title": "TMDBSeasonInfo",
+        "description": "TMDB季度信息模型"
+      },
+      "TaskInfo": {
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "title": "Taskid"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "progress": {
+            "type": "integer",
+            "title": "Progress"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "isSystemTask": {
+            "type": "boolean",
+            "title": "Issystemtask",
+            "default": false
+          },
+          "queueType": {
+            "type": "string",
+            "title": "Queuetype",
+            "default": "download"
+          },
+          "taskType": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tasktype"
+          }
+        },
+        "type": "object",
+        "required": [
+          "taskId",
+          "title",
+          "status",
+          "progress",
+          "description",
+          "createdAt"
+        ],
+        "title": "TaskInfo"
+      },
+      "TokenAccessLog": {
+        "properties": {
+          "accessTime": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Accesstime"
+          },
+          "ipAddress": {
+            "type": "string",
+            "title": "Ipaddress"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          },
+          "userAgent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Useragent"
+          },
+          "method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Method"
+          },
+          "requestHeaders": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requestheaders"
+          },
+          "requestBody": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requestbody"
+          },
+          "responseHeaders": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Responseheaders"
+          },
+          "responseBody": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Responsebody"
+          },
+          "statusCode": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Statuscode"
+          }
+        },
+        "type": "object",
+        "required": [
+          "accessTime",
+          "ipAddress",
+          "status"
+        ],
+        "title": "TokenAccessLog"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "APIKeyHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-KEY"
+      },
+      "APIKeyQuery": {
+        "type": "apiKey",
+        "in": "query",
+        "name": "api_key"
+      }
+    }
+  },
+  "x-upstream-commit": "01751526f6e4154bcc8f517481d02b68cb2684a9",
+  "x-generation": {
+    "method": "declarative AST stripped-signature derivation; not running upstream app",
+    "fastapi": "0.141.1",
+    "pydantic": "2.13.4"
+  }
+}

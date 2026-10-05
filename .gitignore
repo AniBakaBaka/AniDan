@@ -1,0 +1,14 @@
+/node_modules/
+/web/node_modules/
+/web/dist/
+/bin/
+/source/
+/data/
+/config/
+.env
+.env.*
+*.log
+*.db
+*.db-shm
+*.db-wal
+__pycache__/

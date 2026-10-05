@@ -1,0 +1,18 @@
+AniDan frontend
+
+This frontend is derived from misaka_danmu_server by its upstream contributors:
+https://github.com/l429609201/misaka_danmu_server
+Pinned source commit: 01751526f6e4154bcc8f517481d02b68cb2684a9
+
+The upstream frontend is reused under the GNU Affero General Public License,
+version 3. The full license is served at /AGPL-3.0.txt. Existing upstream and
+third-party notices have been retained. AniDan branding and integration changes
+do not imply that upstream authors endorse or maintain AniDan.
+
+This is a compatibility work in progress. A successfully built frontend does
+not mean its backend operations have all been implemented or verified.
+
+Operators must provide users access to the complete Corresponding Source for
+the version they run, including modifications and build instructions, as
+required by the AGPL. Set VITE_ANIDAN_SOURCE_URL at build time to a public source
+repository or source archive for this deployed version.

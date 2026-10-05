@@ -1,0 +1,482 @@
+﻿import { createContext, useContext, useEffect, useState, useMemo } from 'react'
+import { ConfigProvider } from 'antd'
+import { theme } from 'antd'
+import { useTranslation } from 'react-i18next'
+import { getConfig, setConfig } from './apis/index.js'
+
+import zhCN from 'antd/locale/zh_CN'
+import zhTW from 'antd/locale/zh_TW'
+import enUS from 'antd/locale/en_US'
+
+import dayjs from 'dayjs'
+import 'dayjs/locale/zh-cn'
+import 'dayjs/locale/zh-tw'
+import 'dayjs/locale/en'
+
+// 语言 -> AntD locale 映射
+const ANTD_LOCALES = {
+  'zh-CN': zhCN,
+  'zh-TW': zhTW,
+  en: enUS,
+}
+
+// 语言 -> dayjs locale 映射
+const DAYJS_LOCALES = {
+  'zh-CN': 'zh-cn',
+  'zh-TW': 'zh-tw',
+  en: 'en',
+}
+
+const DEFAULT_LANG = 'zh-CN'
+
+// ========== 颜色工具函数 ==========
+
+// hex 转 RGB
+function hexToRgb(hex) {
+  const h = hex.replace('#', '')
+  return {
+    r: parseInt(h.substring(0, 2), 16),
+    g: parseInt(h.substring(2, 4), 16),
+    b: parseInt(h.substring(4, 6), 16),
+  }
+}
+
+// RGB 转 hex
+function rgbToHex(r, g, b) {
+  return '#' + [r, g, b].map(x => Math.round(Math.max(0, Math.min(255, x))).toString(16).padStart(2, '0')).join('')
+}
+
+// 混合两个颜色（ratio: 0=全是color2, 1=全是color1）
+function mixColors(color1, color2, ratio) {
+  const c1 = hexToRgb(color1)
+  const c2 = hexToRgb(color2)
+  return rgbToHex(
+    c1.r * ratio + c2.r * (1 - ratio),
+    c1.g * ratio + c2.g * (1 - ratio),
+    c1.b * ratio + c2.b * (1 - ratio),
+  )
+}
+
+// 加深颜色
+function darkenColor(hex, amount) {
+  const { r, g, b } = hexToRgb(hex)
+  return rgbToHex(r * (1 - amount), g * (1 - amount), b * (1 - amount))
+}
+
+// hex 转 rgba 字符串
+function hexToRgba(hex, alpha) {
+  const { r, g, b } = hexToRgb(hex)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+// 根据主色生成完整的派生色方案
+function generateThemeColors(primaryColor) {
+  const hoverColor = darkenColor(primaryColor, 0.1)
+  const activeColor = darkenColor(primaryColor, 0.2)
+  // 亮色模式下的派生色（与白色混合）
+  const lightBorder = mixColors(primaryColor, '#FFFFFF', 0.15)
+  const lightBorderSecondary = mixColors(primaryColor, '#FFFFFF', 0.1)
+  const lightHoverBg = mixColors(primaryColor, '#FFFFFF', 0.06)
+  const lightBgBase = mixColors(primaryColor, '#FFFFFF', 0.03)
+  const lightHeaderBg = mixColors(primaryColor, '#FFFFFF', 0.08)
+  const lightScrollbarThumb = mixColors(primaryColor, '#FFFFFF', 0.3)
+  return {
+    primary: primaryColor,
+    hover: hoverColor,
+    active: activeColor,
+    light: {
+      border: lightBorder,
+      borderSecondary: lightBorderSecondary,
+      hoverBg: lightHoverBg,
+      bgBase: lightBgBase,
+      headerBg: lightHeaderBg,
+      scrollbarThumb: lightScrollbarThumb,
+    },
+    shadow: hexToRgba(primaryColor, 0.12),
+    shadowLight: hexToRgba(primaryColor, 0.1),
+  }
+}
+
+// 预设主题色
+export const PRESET_THEME_COLORS = [
+  { name: '樱花粉', color: '#FF6B9B' },
+  { name: '天空蓝', color: '#4096FF' },
+  { name: '深海蓝', color: '#1677FF' },
+  { name: '薄荷绿', color: '#52C41A' },
+  { name: '葡萄紫', color: '#722ED1' },
+  { name: '薰衣草', color: '#9254DE' },
+  { name: '落日橙', color: '#FA8C16' },
+  { name: '中国红', color: '#F5222D' },
+]
+
+const DEFAULT_PRIMARY = '#FF6B9B'
+
+const GLASS_STYLES = new Set(['liquid-glass', 'glass', 'acg-glass', 'wallpaper-acg'])
+
+// why：antd v5 Card 的 headerBg 经 CSS-in-JS 注入，会给标题栏一层独立底色，
+//      与卡片主体不同透明度就形成硬边。玻璃/壁纸主题统一置为 transparent，
+//      让标题栏直接透出卡片主体的磨砂层，从而与内容区完全一致。
+function getCardHeaderBg(pageStyle) {
+  return GLASS_STYLES.has(pageStyle) ? 'transparent' : undefined
+}
+
+// 页面样式（纯 CSS 主题，通过 <html data-page-style="..."> 切换）
+// why：页面样式只负责「布局质感」——圆角、投影、毛玻璃、边框、背景纹理；
+// 配色由主题色（--color-primary）与明暗模式各自负责，样式不得覆写颜色变量，
+// 否则会与这两者打架、且无法跟随明暗切换。
+export const PAGE_STYLES = [
+  { key: 'normal',        name: '常规' },
+  { key: 'liquid-glass',  name: '液态玻璃' },
+  { key: 'glass',         name: '云海玻璃' },
+  { key: 'acg-glass',     name: '二次元玻璃' },
+  { key: 'wallpaper-acg', name: '二次元壁纸' },
+  { key: 'sakura',        name: '樱花物语' },
+  { key: 'paper',         name: '纸感极简' },
+  { key: 'calendar',      name: '挂历' },
+  { key: 'github',        name: '代码仓库' },
+  { key: 'material',      name: '质感设计' },
+]
+const DEFAULT_PAGE_STYLE = 'normal'
+
+// 已移除的页面样式：读到这些历史值时回落到 normal，避免旧 localStorage 卡在无 CSS 的空样式
+const REMOVED_PAGE_STYLES = new Set([
+  'terminal', 'neon', 'acg-starry', 'acg-peach', 'acg-cyber', 'bing-mist', 'bing-night',
+])
+
+// 需要背景图的页面样式：未配置地址时仅显示渐变兜底
+export const WALLPAPER_STYLE_KEYS = ['wallpaper-acg']
+
+// 创建上下文
+const ThemeContext = createContext()
+
+export function ThemeProvider({ children }) {
+  const { i18n } = useTranslation()
+  const [isDark, setIsDark] = useState(false)
+  const [themeColor, setThemeColorState] = useState(() => {
+    return localStorage.getItem('themeColor') || DEFAULT_PRIMARY
+  })
+  const [pageStyle, setPageStyleState] = useState(() => {
+    const saved = localStorage.getItem('pageStyle')
+    // 历史已移除的样式回落为默认值
+    if (!saved || REMOVED_PAGE_STYLES.has(saved)) return DEFAULT_PAGE_STYLE
+    return saved
+  })
+  // 自定义壁纸地址：优先用 localStorage 缓存（用户手动改过的值），
+  // 若本地没有缓存则从后端读取 wallpaperAcgUrl 配置作为默认值。
+  // why：默认值存在数据库，首次使用自动写入 https://www.loliapi.com/acg/pc/，
+  // 管理员可在设置页替换为其他随机图源，无需重启生效。
+  const [wallpaperUrl, setWallpaperUrlState] = useState(() => {
+    return localStorage.getItem('wallpaperUrl') || ''
+  })
+
+  // 初始化：若 localStorage 没有壁纸地址，从后端获取默认值
+  useEffect(() => {
+    if (localStorage.getItem('wallpaperUrl')) return
+    getConfig('wallpaperAcgUrl').then(res => {
+      const url = res?.data?.value || ''
+      if (url) {
+        setWallpaperUrlState(url)
+        // why：不写入 localStorage，保持"db 是默认源"的语义；
+        // 用户在设置页手动修改后才写入 localStorage，优先级高于 db 默认值。
+      }
+    }).catch(() => {/* 获取失败静默降级，保持渐变兜底 */})
+  }, [])
+  const [language, setLanguageState] = useState(() => {
+    return localStorage.getItem('lang') || i18n.language || DEFAULT_LANG
+  })
+
+  // 设置语言并持久化（同步切换 i18next 与 dayjs）
+  const setLanguage = (lang) => {
+    setLanguageState(lang)
+    localStorage.setItem('lang', lang)
+    i18n.changeLanguage(lang)
+    dayjs.locale(DAYJS_LOCALES[lang] || 'zh-cn')
+  }
+
+  // 初始化时同步 i18next 与 dayjs 的语言
+  useEffect(() => {
+    if (i18n.language !== language) {
+      i18n.changeLanguage(language)
+    }
+    dayjs.locale(DAYJS_LOCALES[language] || 'zh-cn')
+    document.documentElement.setAttribute('lang', language)
+  }, [language])
+
+  // 根据主色生成派生色
+  const colors = useMemo(() => generateThemeColors(themeColor), [themeColor])
+
+  // 动态更新 CSS 变量
+  const applyCssVariables = (isDarkMode, colorScheme) => {
+    const root = document.documentElement
+    // 主色始终更新
+    root.style.setProperty('--color-primary', colorScheme.primary)
+    root.style.setProperty('--color-primary-dark', colorScheme.hover)
+    root.style.setProperty('--color-shadow', colorScheme.shadow)
+
+    if (!isDarkMode) {
+      // 亮色模式：背景、边框、hover 都跟随主色
+      root.style.setProperty('--color-bg', colorScheme.light.bgBase)
+      root.style.setProperty('--color-hover', colorScheme.light.hoverBg)
+      root.style.setProperty('--color-border', colorScheme.light.border)
+      root.style.setProperty('--scrollbar-thumb', colorScheme.light.scrollbarThumb)
+      root.style.setProperty('--scrollbar-thumb-hover', colorScheme.primary)
+    } else {
+      // 暗色模式：背景/边框保持 slate 色调，只更新主色
+      root.style.setProperty('--color-bg', '#0f172a')
+      root.style.setProperty('--color-hover', '#273449')
+      root.style.setProperty('--color-border', '#334155')
+      root.style.setProperty('--scrollbar-thumb', '#475569')
+      root.style.setProperty('--scrollbar-thumb-hover', '#64748b')
+    }
+  }
+
+  // 设置主题色并持久化
+  const setThemeColor = (color) => {
+    setThemeColorState(color)
+    localStorage.setItem('themeColor', color)
+  }
+
+  // 设置页面样式并持久化
+  const setPageStyle = (style) => {
+    setPageStyleState(style)
+    localStorage.setItem('pageStyle', style)
+  }
+
+  // 设置壁纸地址并持久化（传空字符串即清除，恢复无图状态）
+  const setWallpaperUrl = (url) => {
+    const next = (url || '').trim()
+    setWallpaperUrlState(next)
+    if (next) localStorage.setItem('wallpaperUrl', next)
+    else localStorage.removeItem('wallpaperUrl')
+  }
+
+  // 把 pageStyle 写到 <html> 的 data-page-style 属性，全局 CSS 据此切换
+  useEffect(() => {
+    document.documentElement.setAttribute('data-page-style', pageStyle)
+  }, [pageStyle])
+
+  // 壁纸地址 → CSS 变量 --ani-wallpaper
+  // why：壁纸主题的 background-image 直接用 var(--ani-wallpaper)，不带任何内置默认值。
+  // 未填写时移除该变量，background-image 求值失败即不加载图片，只剩渐变兜底，
+  // 因此项目默认不会向任何第三方域名发起请求。
+  useEffect(() => {
+    const root = document.documentElement
+    if (wallpaperUrl) {
+      // 仅允许 http/https，避免 javascript: 等协议注入
+      if (/^https?:\/\//i.test(wallpaperUrl)) {
+        // 转义反斜杠与引号，防止提前闭合 url("...") 注入额外 CSS
+        const escaped = wallpaperUrl.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+        root.style.setProperty('--ani-wallpaper', `url("${escaped}")`)
+        return
+      }
+      console.warn('[ThemeProvider] 壁纸地址必须以 http:// 或 https:// 开头，已忽略:', wallpaperUrl)
+    }
+    root.style.removeProperty('--ani-wallpaper')
+  }, [wallpaperUrl])
+
+  // 初始化：检查系统偏好或本地存储
+  useEffect(() => {
+    const prefersDark =
+      localStorage.theme === 'dark' ||
+      (!('theme' in localStorage) &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches)
+
+    setIsDark(prefersDark)
+    document.documentElement.classList.toggle('dark', prefersDark)
+    updateMetaThemeColor(prefersDark)
+  }, [])
+
+  // 当 isDark 或 themeColor 变化时，更新 CSS 变量
+  useEffect(() => {
+    applyCssVariables(isDark, colors)
+  }, [isDark, colors])
+
+  // 切换暗黑模式
+  const toggleDarkMode = () => {
+    const newDarkState = !isDark
+    setIsDark(newDarkState)
+    document.documentElement.classList.toggle('dark', newDarkState)
+    localStorage.theme = newDarkState ? 'dark' : 'light'
+    updateMetaThemeColor(newDarkState)
+  }
+
+  // 更新meta标签主题色的函数
+  const updateMetaThemeColor = isDarkMode => {
+    const metaColor = isDarkMode ? '#0f172a' : colors.light.bgBase
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]')
+    if (themeColorMeta) {
+      themeColorMeta.setAttribute('content', metaColor)
+    }
+    const statusBarMeta = document.querySelector(
+      'meta[name="apple-mobile-web-app-status-bar-style"]'
+    )
+    if (statusBarMeta) {
+      statusBarMeta.setAttribute('content', metaColor)
+    }
+  }
+
+  // AntD 5 主题配置（核心）- 动态生成
+  const { defaultAlgorithm, darkAlgorithm } = theme
+
+  const lightTheme = useMemo(() => ({
+    algorithm: defaultAlgorithm,
+    token: {
+      colorPrimary: colors.primary,
+      colorPrimaryHover: colors.hover,
+      colorPrimaryActive: colors.active,
+      colorSuccess: '#389e0d',
+      colorWarning: '#FFD166',
+      colorError: '#FF5252',
+      colorInfo: '#64B5F6',
+      colorBgBase: colors.light.bgBase,
+      colorBgContainer: '#FFFFFF',
+      colorBgElevated: colors.light.hoverBg,
+      colorTextBase: '#333333',
+      colorTextSecondary: '#666666',
+      colorTextTertiary: '#999999',
+      colorBorder: colors.light.border,
+      colorBorderSecondary: colors.light.borderSecondary,
+      fontFamily: "'MyNunito', 'Nunito', 'Comic Sans MS', sans-serif",
+      controlHeight: 40,
+    },
+    components: {
+      Button: { borderRadius: 20, fontSize: 14 },
+      Card: {
+        borderRadius: 12,
+        boxShadow: `0 4px 16px ${colors.shadowLight}`,
+        colorBorder: colors.light.border,
+        // why：直接传入对应主题的 RGBA 值，绕开 CSS-in-JS 插入顺序问题
+        ...(getCardHeaderBg(pageStyle) !== undefined && { headerBg: getCardHeaderBg(pageStyle) }),
+      },
+      Tabs: {
+        colorPrimary: colors.primary,
+        borderRadius: 8,
+        itemActiveColor: colors.primary,
+      },
+      Table: {
+        colorBorder: colors.light.border,
+        borderRadius: 8,
+        headerBg: colors.light.hoverBg,
+        rowHoverBg: colors.light.hoverBg,
+      },
+      List: {
+        colorBorder: colors.light.border,
+        itemHoverBg: colors.light.hoverBg,
+      },
+      Form: {
+        colorBorder: colors.light.border,
+        itemMarginBottom: 16,
+      },
+      Input: {
+        borderRadius: 8,
+        borderColor: colors.light.border,
+        hoverBorderColor: colors.primary,
+      },
+    },
+  }), [colors, pageStyle])
+
+  const darkTheme = useMemo(() => ({
+    algorithm: darkAlgorithm,
+    token: {
+      colorPrimary: colors.primary,
+      colorPrimaryHover: colors.hover,
+      colorPrimaryActive: colors.active,
+      colorSuccess: '#6abe39',
+      colorWarning: '#FFC850',
+      colorError: '#FF5252',
+      colorInfo: '#7DCFFF',
+      colorBgBase: '#0F172A',
+      colorBgContainer: '#1E293B',
+      colorBgElevated: '#273449',
+      colorBgLayout: '#0F172A',
+      colorBgSpotlight: '#334155',
+      colorTextBase: '#F8FAFC',
+      colorTextSecondary: '#E2E8F0',
+      colorTextTertiary: '#94A3B8',
+      colorTextQuaternary: '#64748B',
+      colorBorder: '#334155',
+      colorBorderSecondary: '#2A3A51',
+      // Fill 色系 — 防止 darkAlgorithm 自动派生出不协调的中间色
+      colorFill: 'rgba(255, 255, 255, 0.18)',
+      colorFillSecondary: 'rgba(255, 255, 255, 0.12)',
+      colorFillTertiary: 'rgba(255, 255, 255, 0.08)',
+      colorFillQuaternary: 'rgba(255, 255, 255, 0.04)',
+      fontFamily: "'MyNunito', 'Nunito', 'Comic Sans MS', sans-serif",
+      controlHeight: 40,
+    },
+    components: {
+      Button: { borderRadius: 20, fontSize: 14 },
+      Card: {
+        borderRadius: 12,
+        boxShadow: `0 4px 16px ${colors.shadow}`,
+        colorBorder: '#334155',
+        colorBgContainer: '#1E293B',
+        // why：直接传入对应主题的 RGBA 值，绕开 CSS-in-JS 插入顺序问题
+        ...(getCardHeaderBg(pageStyle) !== undefined && { headerBg: getCardHeaderBg(pageStyle) }),
+      },
+      Tabs: {
+        colorPrimary: colors.primary,
+        borderRadius: 8,
+        itemActiveColor: colors.primary,
+      },
+      Table: {
+        colorBorder: '#334155',
+        borderRadius: 8,
+        headerBg: '#273449',
+        rowHoverBg: '#273449',
+        colorBgContainer: '#1E293B',
+      },
+      List: {
+        colorBorder: '#334155',
+        itemHoverBg: '#273449',
+        colorSplit: '#334155',
+        colorBgContainer: '#1E293B',
+      },
+      Form: {
+        colorBorder: '#334155',
+        itemMarginBottom: 16,
+        labelColor: '#E2E8F0',
+      },
+      Input: {
+        borderRadius: 8,
+        colorBgContainer: '#273449',
+        colorBorder: '#334155',
+        hoverBorderColor: colors.primary,
+        activeBorderColor: colors.primary,
+        addonBg: '#334155',
+      },
+      InputNumber: { colorBgContainer: '#273449' },
+      Select: { colorBgContainer: '#273449', colorBgElevated: '#334155', optionSelectedBg: '#334155' },
+      DatePicker: { colorBgContainer: '#273449', colorBgElevated: '#1E293B' },
+      TimePicker: { colorBgContainer: '#273449', colorBgElevated: '#1E293B' },
+      Cascader: { colorBgContainer: '#273449' },
+      TreeSelect: { colorBgContainer: '#273449' },
+      Modal: { contentBg: '#1E293B', headerBg: '#1E293B', footerBg: '#1E293B' },
+      Drawer: { colorBgElevated: '#1E293B' },
+      Dropdown: { colorBgElevated: '#1E293B' },
+      Popover: { colorBgElevated: '#1E293B' },
+      Popconfirm: { colorBgElevated: '#1E293B' },
+      Tooltip: { colorBgSpotlight: '#334155' },
+      Message: { contentBg: '#1E293B' },
+      Notification: { colorBgElevated: '#1E293B' },
+      Alert: { colorInfoBg: '#1a2a3a', colorWarningBg: '#2a2517', colorErrorBg: '#2a1515', colorSuccessBg: '#152a1a' },
+      Descriptions: { colorBgContainer: '#1E293B', colorSplit: '#334155' },
+      Tag: { defaultBg: '#273449' },
+      Switch: { colorPrimaryHover: colors.hover },
+      Segmented: { colorBgLayout: '#273449', itemSelectedBg: '#1E293B' },
+    },
+  }), [colors, pageStyle])
+
+  return (
+    <ThemeContext.Provider value={{ isDark, toggleDarkMode, themeColor, setThemeColor, pageStyle, setPageStyle, wallpaperUrl, setWallpaperUrl, language, setLanguage }}>
+      <ConfigProvider locale={ANTD_LOCALES[language] || zhCN} theme={isDark ? darkTheme : lightTheme}>
+        {children}
+      </ConfigProvider>
+    </ThemeContext.Provider>
+  )
+}
+
+// 自定义Hook
+export function useThemeMode() {
+  return useContext(ThemeContext)
+}
